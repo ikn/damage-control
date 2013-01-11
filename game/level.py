@@ -3,7 +3,7 @@ from collections import OrderedDict
 import pygame as pg
 
 from conf import conf
-from random import randint, choice, gammavariate
+from random import randint, choice, shuffle, gammavariate
 
 
 class Connection (object):
@@ -110,8 +110,8 @@ Returns whether any methods are available.
                              conf.METHOD_SPEED_MULTIPLIER
             if self.progress >= 1:
                 # finished sending
-                self.sending.finished()
-                self.other().recieve()
+                self.sending.finished(self)
+                self.other().recieve(self)
                 self.sent = True
                 self.cancel()
 
@@ -125,6 +125,7 @@ class Person (object):
         self.pos = pos
         self.cons = []
         self.knows = False
+        self._know = []
         self.sending = False
 
     def __str__ (self):
@@ -146,24 +147,28 @@ dist(person) -> distance
             ox, oy = args[0].pos
         return ((ox - x) * (ox - x) + (oy - y) * (oy - y)) ** .5
 
-    def recieve (self):
+    def recieve (self, con = None):
         """Recieve the message."""
         if not self.knows:
             print self, 'knows'
+            if con is not None:
+                self._know.append(con.other(self))
             self.knows = True
 
     def send (self):
         """Send the message."""
         # find people we're connected to who don't know
         targets = []
+        know = self._know
         for c in self.cons:
-            if not c.other(self).knows:
+            if c.other(self) not in know:
                 targets.append(c)
         if targets:
+            shuffle(targets)
             for c in targets:
                 # try to send
                 if c.send(self):
-                    print self, '->', c.other()
+                    print self, '->', c.other(self)
                     self.sending = True
                     return
             # no connections remain
@@ -177,8 +182,9 @@ dist(person) -> distance
         con.cancel()
         self.send()
 
-    def finished (self):
+    def finished (self, con):
         """Tell the person sending has finished."""
+        self._know.append(con.other(self))
         self.sending = False
 
     def update (self):
@@ -205,8 +211,7 @@ class Level (object):
         x0 += b
         y0 += b
         nearest = 2 * conf.PERSON_ICON_RADIUS + conf.PERSON_NEAREST
-        n = conf.NUM_PEOPLE
-        for i in range(n):
+        for i in range(conf.NUM_PEOPLE):
             while True:
                 x, y = randint(x0, x1), randint(y0, y1)
                 for p in ps:
@@ -222,7 +227,8 @@ class Level (object):
         # then group everyone who's connected into sets
         # and while there's more than one set, take two sets and join them by connecting the two nearest people in either
         #n_cons = conf.CONS_PER_PERSON
-        #this_cons = max(1, min(n, gammavariate(*n_cons)))
+        #max_cons = conf.MAX_CONS_PER_PERSON
+        #this_cons = max(1, min(max_cons, gammavariate(*n_cons)))
         for i1, i2 in ((0, 1), (0, 2), (1, 3)):
             c = Connection(self, (ps[i1], ps[i2]), ('in-person',)) ##
             ps[i1].cons.append(c) ##

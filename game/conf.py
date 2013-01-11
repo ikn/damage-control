@@ -114,6 +114,7 @@ class Conf (object):
     PERSON_NEAREST = 20
     NUM_PEOPLE = 20
     CONS_PER_PERSON = (5, .5) # arguments to random.gammavariate
+    MAX_CONS_PER_PERSON = 7
     # map: running
     METHOD_SPEED = {
         None: 0,
