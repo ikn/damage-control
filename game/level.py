@@ -1,9 +1,10 @@
 from collections import OrderedDict
+from random import randint, choice, shuffle, gammavariate
 
 import pygame as pg
 
 from conf import conf
-from random import randint, choice, shuffle, gammavariate
+from util import ir
 
 
 class Connection (object):
@@ -116,7 +117,13 @@ Returns whether any methods are available.
                 self.cancel()
 
     def draw (self, screen):
-        return
+        pg.draw.line(screen, (255, 255, 255), self.people[0].pos, self.people[1].pos)
+        if self.sending:
+            x0, y0 = self.sending.pos
+            x1, y1 = self.other().pos
+            r = self.progress
+            pos = (ir(x0 + r * (x1 - x0)), ir(y0 + r * (y1 - y0)))
+            pg.draw.circle(screen, (255, 255, 255), pos, 3)
 
 
 class Person (object):
@@ -192,8 +199,11 @@ dist(person) -> distance
             self.send()
 
     def draw (self, screen):
-        pg.draw.circle(screen, (200, 200, 200), self.pos,
-                       conf.PERSON_ICON_RADIUS)
+        if self.knows:
+            c = (255, 100, 100)
+        else:
+            c = (100, 255, 100)
+        pg.draw.circle(screen, c, self.pos, conf.PERSON_ICON_RADIUS)
 
 
 class Level (object):
@@ -229,7 +239,7 @@ class Level (object):
         #n_cons = conf.CONS_PER_PERSON
         #max_cons = conf.MAX_CONS_PER_PERSON
         #this_cons = max(1, min(max_cons, gammavariate(*n_cons)))
-        for i1, i2 in ((0, 1), (0, 2), (1, 3)):
+        for i1, i2 in ((0, 1), (0, 2), (1, 3), (4, 3), (5, 2), (7, 1), (6, 8), (6, 4), (8, 5), (5, 3)):
             c = Connection(self, (ps[i1], ps[i2]), ('in-person',)) ##
             ps[i1].cons.append(c) ##
             ps[i2].cons.append(c)
@@ -250,11 +260,13 @@ class Level (object):
             c.update()
 
     def draw (self, screen):
-        if self.dirty:
-            screen.blit(self.game.img('bg.png'), (0, 0))
-            for p in self.people:
-                p.draw(screen)
-            self.dirty = False
-            return True
-        else:
-            return False
+        #if self.dirty:
+            #self.dirty = False
+        #else:
+            #return False
+        screen.blit(self.game.img('bg.png'), (0, 0))
+        for c in self.cons:
+            c.draw(screen)
+        for p in self.people:
+            p.draw(screen)
+        return True
