@@ -2,7 +2,7 @@ A game for a 2-week competition with the theme 'voices'.
 
     DEPENDENCIES
 
-Python (2.6 or later 2.x)
+Python (2.7 or later 2.x)
 Pygame (1.8 or later, probably; tested with 1.9.1)
 
     RUNNING
@@ -17,8 +17,7 @@ executable.
 
     CONTROLS
 
-F11, alt + enter: toggle fullscreen
-F10: minimise
+Use the mouse.
 
     LICENSING
 

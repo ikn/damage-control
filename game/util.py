@@ -43,17 +43,6 @@ def rand0 ():
     return 2 * random() - 1
 
 
-def rand_in (a, b):
-    """Return a random number in a continuous range.
-
-rand_in(a, b) -> num
-
-where a <= num < b.
-
-"""
-    return a + random() * (b - a)
-
-
 def weighted_rand (ws):
     """Return a weighted random choice.
 

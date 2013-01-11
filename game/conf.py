@@ -14,7 +14,7 @@ class Conf (object):
 
     IDENT = 'game'
     USE_SAVEDATA = False
-    USE_FONTS = False
+    USE_FONTS = True
 
     # save data
     SAVE = ()
@@ -51,15 +51,15 @@ class Conf (object):
     MOUSE_VISIBLE = dd(False) # per-backend
     FLAGS = 0
     FULLSCREEN = False
-    RESIZABLE = True # also determines whether fullscreen togglable
-    RES_W = (960, 540)
+    RESIZABLE = False # also determines whether fullscreen togglable
+    RES_W = (1000, 600)
     RES_F = pg.display.list_modes()[0]
     RES = RES_W
     MIN_RES_W = (320, 180)
     ASPECT_RATIO = None
 
     # timing
-    FPS = dd(60) # per-backend
+    FPS = dd(30) # per-backend
 
     # debug
     PROFILE_STATS_FILE = '.profile_stats'
@@ -98,8 +98,28 @@ class Conf (object):
                     SOUNDS[ident] = n + 1
 
     # text rendering
-    # per-backend, each a {key: value} dict to update fonthandler.Fonts with
+    # per-backend, each a {key: value} dict to update Game.fonts with
     REQUIRED_FONTS = dd({})
+
+    # graphics
+    NEWS_RECT = (0, 0, 150, 600)
+    MAP_RECT = (150, 0, 700, 600)
+    UI_RECT = (850, 0, 150, 600)
+    # map
+    PERSON_ICON_RADIUS = 7
+    MAP_BORDER = 15 # contains no people
+
+    # gameplay
+    # map: initialisation
+    PERSON_NEAREST = 20
+    NUM_PEOPLE = 20
+    CONS_PER_PERSON = (5, .5) # arguments to random.gammavariate
+    # map: running
+    METHOD_SPEED = {
+        None: 0,
+        'in-person': 5
+    }
+    METHOD_SPEED_MULTIPLIER = .001
 
 
 def translate_dd (d):
