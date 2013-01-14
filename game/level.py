@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from random import randint, choice, shuffle, gammavariate
+from random import randint, choice, shuffle
 
 import pygame as pg
 
@@ -97,6 +97,9 @@ Returns whether any methods are available, or None if already sent.
         if resend:
             # re-send in same direction
             sender = self.sending
+        elif self.sending:
+            # trying to start sending in the other direction: don't
+            return True
         if not self.sent:
             self.sending = sender
             self.progress = 0
@@ -119,7 +122,7 @@ Returns whether any methods are available, or None if already sent.
         del self.current_method, self.progress
 
     def update (self):
-        if self.sending:
+        if self.sending and self.current_method is not None:
             self.progress += self.methods[self.current_method]['speed']
             if self.progress >= 1:
                 # finished sending
@@ -269,18 +272,27 @@ class Level (object):
             # need to add dist to self.dists before creating Connection
             key = frozenset((p1, p2))
             used_dists[key] = dists[key]
-            c = Connection(self, (p1, p2), ('in person',))
+            # choose method types
+            this_methods = set()
+            for i in xrange(ir(max(1, n_methods()))):
+                this_methods.add(weighted_rand(methods))
+            # create connection and add to stores
+            c = Connection(self, (p1, p2), this_methods)
             self.cons.append(c)
             p1.cons.append(c)
             p2.cons.append(c)
             g1 = groups[p1]
             g2 = groups[p2]
+            # merge groups
             g1.update(g2)
             for p, g in groups.iteritems():
                 if g is g2:
                     groups[p] = g1
 
         # generate connections
+        methods = dict((method, data['freq'])
+                       for method, data in conf.METHODS.iteritems())
+        n_methods = conf.METHODS_PER_CON
         self.cons = []
         # and group by whether connected
         groups = dict((p, set((p,))) for p in ps)
@@ -295,8 +307,7 @@ class Level (object):
             for c in p.cons:
                 del others[c.other(p)]
             targets = []
-            this_n_cons = ir(max(1, min(max_cons, min(len(others),
-                                                      gammavariate(*n_cons)))))
+            this_n_cons = ir(max(1, min(max_cons, min(len(others), n_cons()))))
             for i in xrange(this_n_cons - len(p.cons)):
                 other = weighted_rand(others)
                 targets.append(other)
@@ -332,11 +343,11 @@ class Level (object):
             c.update()
 
     def draw (self, screen):
-        #if self.dirty:
-            #self.dirty = False
-        #else:
-            #return False
-        screen.blit(self.game.img('bg.png'), (0, 0))
+        if self.dirty:
+            screen.blit(self.game.img('bg.png'), (0, 0))
+            self.dirty = False
+        else:
+            screen.blit(self.game.img('bg.png'), conf.MAP_RECT, conf.MAP_RECT)
         for c in self.cons:
             c.draw_base(screen)
         for p in self.people:
