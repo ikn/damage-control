@@ -110,18 +110,33 @@ class Conf (object):
     MAP_BORDER = 15 # contains no people
 
     # gameplay
-    # map: initialisation
+    # map initialisation
     PERSON_NEAREST = 20
     NUM_PEOPLE = 50
     CONS_PER_PERSON = (5, .5) # arguments to random.gammavariate
     MAX_CONS_PER_PERSON = 6
     SHORT_CONNECTION_BIAS = 4
     # map: running
-    METHOD_SPEED = {
-        None: 0,
-        'in-person': 5
+    # if dist, speed is in pixels per second
+    # else time is in frames
+    METHODS = {
+        None: {'dist': True, 'speed': 0},
+        'phone': {'dist': False, 'time': 60, 'freq': 1},
+        'in person': {'dist': False, 'time': 15, 'freq': 1},
+        'e-mail': {'dist': False, 'time': 60, 'freq': 1},
+        'fax': {'dist': False, 'time': 60, 'freq': 1},
+        'mail': {'dist': False, 'time': 60, 'freq': 1},
+        'carrier pigeon': {'dist': False, 'time': 60, 'freq': 1},
+        'message in a bottle': {'dist': False, 'time': 60, 'freq': 1},
+        'telepathy': {'dist': False, 'time': 60, 'freq': 1},
+        'beacon': {'dist': False, 'time': 60, 'freq': 1},
+        'drums': {'dist': False, 'time': 60, 'freq': 1},
+        'radio': {'dist': False, 'time': 60, 'freq': 1},
+        'pager': {'dist': False, 'time': 60, 'freq': 1},
+        'newspaper crossword': {'dist': False, 'time': 60, 'freq': 1},
+        'skywriting': {'dist': False, 'time': 60, 'freq': 1},
+        'telegraph': {'dist': False, 'time': 60, 'freq': 1}
     }
-    METHOD_SPEED_MULTIPLIER = .001
 
 
 def translate_dd (d):

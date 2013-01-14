@@ -7,6 +7,15 @@ from conf import conf
 from util import ir, weighted_rand
 
 
+def method_speed (method, fps, dist):
+    """Get a method's speed in fraction of total distance per frame."""
+    method = conf.METHODS[method]
+    if method['dist']:
+        return float(method['speed']) / (fps * dist)
+    else:
+        return 1. / (fps * method['time'])
+
+
 class Connection (object):
     """A connection between two people.
 
@@ -29,9 +38,9 @@ draw
     ATTRIBUTES
 
 level, people: as given.
-methods: {method: allowed} OrderedDict for each available method, fastest
-         first.
-dist: distance between the people, in pixels.
+dist: length of the connection line, in pixels.
+methods: {method: {'allowed': allowed, 'speed': speed}} OrderedDict for each
+         available method, fastest first.
 sending: the target person if currently sending a message, else None.
 sent: whether the message has finished sending.
     [if sending:]
@@ -44,10 +53,13 @@ current_method: the method currently being used to send a message (None if
     def __init__ (self, level, people, methods):
         self.level = level
         self.people = people
-        speed = conf.METHOD_SPEED
-        methods = reversed(sorted((speed[m], m) for m in methods))
-        self.methods = OrderedDict((m, True) for s, m in methods)
-        self.dist = people[0].dist(people[1]) - 2 * conf.PERSON_ICON_RADIUS
+        self.dist = dist = people[0].dist(people[1]) - \
+                           2 * conf.PERSON_ICON_RADIUS
+        fps = conf.FPS[None]
+        methods = reversed(sorted((method_speed(m, fps, dist), m)
+                                  for m in methods))
+        self.methods = OrderedDict((m, {'allowed': True, 'speed': s})
+                                   for s, m in methods)
         self.sending = False
         self.sent = False
 
@@ -58,18 +70,19 @@ current_method: the method currently being used to send a message (None if
         return self.people[self.people[0] is person]
 
     def disable_method (self, method):
-        self.methods[method] = False
+        self.methods[method]['allowed'] = False
         if self.sending and method == self.current_method:
             # was using this method: switch to another
             self.send()
 
     def enable_method (self, method):
-        self.methods[method] = True
+        method = self.methods[method]
+        method['allowed'] = True
         if self.sending:
-            speed = conf.METHOD_SPEED
-            dist_left = (1 - self.progress) * self.dist
-            t_left = dist_left / speed[self.current_method]
-            if self.dist / speed[method] < dist_left:
+            dist = self.dist
+            dist_left = (1 - self.progress) * dist
+            t_left = dist_left / self.methods[self.current_method]['speed']
+            if dist / method['speed'] < t_left:
                 # switching to this method will be quicker
                 self.send()
 
@@ -88,8 +101,8 @@ Returns whether any methods are available, or None if already sent.
             self.sending = sender
             self.progress = 0
             # use fastest available method
-            for m, allowed in self.methods.iteritems():
-                if allowed:
+            for m, data in self.methods.iteritems():
+                if data['allowed']:
                     self.current_method = m
                     return True
             # no available methods
@@ -107,8 +120,7 @@ Returns whether any methods are available, or None if already sent.
 
     def update (self):
         if self.sending:
-            self.progress += conf.METHOD_SPEED[self.current_method] * \
-                             conf.METHOD_SPEED_MULTIPLIER
+            self.progress += self.methods[self.current_method]['speed']
             if self.progress >= 1:
                 # finished sending
                 self.sending.finished(self)
@@ -116,12 +128,14 @@ Returns whether any methods are available, or None if already sent.
                 self.sent = True
                 self.cancel()
 
-    def draw (self, screen):
+    def draw_base (self, screen):
         if self.sent:
             colour = (255, 100, 100)
         else:
             colour = (100, 255, 100)
         pg.draw.aaline(screen, colour, self.people[0].pos, self.people[1].pos)
+
+    def draw_pos (self, screen):
         if self.sending:
             x0, y0 = start = self.sending.pos
             x1, y1 = end = self.other().pos
@@ -156,6 +170,7 @@ class Person (object):
             if con is not None:
                 self._know.append(con.other(self))
             self.knows = True
+            self.level.n_know += 1
         elif self.sending is con:
             # recieving from the person we're sending to: cancel sending
             self.sending = False
@@ -254,7 +269,7 @@ class Level (object):
             # need to add dist to self.dists before creating Connection
             key = frozenset((p1, p2))
             used_dists[key] = dists[key]
-            c = Connection(self, (p1, p2), ('in-person',))
+            c = Connection(self, (p1, p2), ('in person',))
             self.cons.append(c)
             p1.cons.append(c)
             p2.cons.append(c)
@@ -300,6 +315,7 @@ class Level (object):
             frozen_groups = set(frozenset(g) for g in groups.itervalues())
 
         # let someone know
+        self.n_know = 0
         p = choice(ps)
         p.recieve()
         p.ident = 'initial' # mother, brother, etc.
@@ -322,7 +338,9 @@ class Level (object):
             #return False
         screen.blit(self.game.img('bg.png'), (0, 0))
         for c in self.cons:
-            c.draw(screen)
+            c.draw_base(screen)
         for p in self.people:
             p.draw(screen)
+        for c in self.cons:
+            c.draw_pos(screen)
         return True
