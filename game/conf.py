@@ -48,7 +48,7 @@ class Conf (object):
     # display
     WINDOW_ICON = None #IMG_DIR + 'icon.png'
     WINDOW_TITLE = ''
-    MOUSE_VISIBLE = dd(False) # per-backend
+    MOUSE_VISIBLE = dd(True) # per-backend
     FLAGS = 0
     FULLSCREEN = False
     RESIZABLE = False # also determines whether fullscreen togglable
@@ -106,15 +106,16 @@ class Conf (object):
     MAP_RECT = (150, 0, 700, 600)
     UI_RECT = (850, 0, 150, 600)
     # map
-    PERSON_ICON_RADIUS = 7
+    PERSON_ICON_RADIUS = 5
     MAP_BORDER = 15 # contains no people
 
     # gameplay
     # map: initialisation
     PERSON_NEAREST = 20
-    NUM_PEOPLE = 20
+    NUM_PEOPLE = 50
     CONS_PER_PERSON = (5, .5) # arguments to random.gammavariate
     MAX_CONS_PER_PERSON = 7
+    SHORT_CONNECTION_BIAS = 4
     # map: running
     METHOD_SPEED = {
         None: 0,

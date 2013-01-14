@@ -4,7 +4,7 @@ from random import randint, choice, shuffle, gammavariate
 import pygame as pg
 
 from conf import conf
-from util import ir
+from util import ir, weighted_rand
 
 
 class Connection (object):
@@ -77,7 +77,7 @@ current_method: the method currently being used to send a message (None if
         """Send a message from the given person.
 
 
-Returns whether any methods are available.
+Returns whether any methods are available, or None if already sent.
 
 """
         resend = sender is None
@@ -117,13 +117,17 @@ Returns whether any methods are available.
                 self.cancel()
 
     def draw (self, screen):
-        pg.draw.line(screen, (255, 255, 255), self.people[0].pos, self.people[1].pos)
+        if self.sent:
+            colour = (255, 100, 100)
+        else:
+            colour = (100, 255, 100)
+        pg.draw.line(screen, colour, self.people[0].pos, self.people[1].pos)
         if self.sending:
-            x0, y0 = self.sending.pos
-            x1, y1 = self.other().pos
+            x0, y0 = start = self.sending.pos
+            x1, y1 = end = self.other().pos
             r = self.progress
             pos = (ir(x0 + r * (x1 - x0)), ir(y0 + r * (y1 - y0)))
-            pg.draw.circle(screen, (255, 255, 255), pos, 3)
+            pg.draw.circle(screen, (255, 100, 100), pos, 3)
 
 
 class Person (object):
@@ -140,27 +144,20 @@ class Person (object):
 
     __repr__ = __str__
 
-    def dist (self, *args):
-        """Get the distance to another person.
-
-dist(x, y) -> distance
-dist(person) -> distance
-
-"""
-        x, y = self.pos
-        if len(args) == 2:
-            ox, oy = args
-        else:
-            ox, oy = args[0].pos
-        return ((ox - x) * (ox - x) + (oy - y) * (oy - y)) ** .5
+    def dist (self, other):
+        """Get the distance to another person."""
+        return self.level.dists[frozenset((self, other))]
 
     def recieve (self, con = None):
         """Recieve the message."""
         if not self.knows:
-            print self, 'knows'
+            #print self, 'knows'
             if con is not None:
                 self._know.append(con.other(self))
             self.knows = True
+        elif self.sending is con:
+            # recieving from the person we're sending to: cancel sending
+            self.sending = False
 
     def send (self):
         """Send the message."""
@@ -170,17 +167,21 @@ dist(person) -> distance
         for c in self.cons:
             if c.other(self) not in know:
                 targets.append(c)
+        had_any = False
         if targets:
             shuffle(targets)
             for c in targets:
                 # try to send
-                if c.send(self):
-                    print self, '->', c.other(self)
-                    self.sending = True
+                success = c.send(self)
+                if success:
+                    #print self, '->', c.other(self)
+                    self.sending = c
                     return
+                elif success is False:
+                    had_any = True
             # no connections remain
             self.sending = False
-        else:
+        if not had_any:
             # everyone knows: we have nothing to do, ever
             self.sending = None
 
@@ -214,6 +215,8 @@ class Level (object):
     def init (self):
         # generate people
         self.people = ps = []
+        dists = {}
+        self.dists = used_dists = {}
         b = conf.MAP_BORDER
         x0, y0, w, h = conf.MAP_RECT
         x1 = x0 + w - b
@@ -225,28 +228,60 @@ class Level (object):
             while True:
                 x, y = randint(x0, x1), randint(y0, y1)
                 for p in ps:
-                    if p.dist(x, y) < nearest:
+                    ox, oy = p.pos
+                    dist = ((ox - x) * (ox - x) + (oy - y) * (oy - y)) ** .5
+                    if dist < nearest:
                         break
                 else:
-                    ps.append(Person(self, (x, y)))
+                    new_p = Person(self, (x, y))
+                    if ps:
+                        dists[frozenset((new_p, p))] = dist
+                    ps.append(new_p)
                     break
+        # compute all remaining distances
+        for p1 in ps:
+            for p2 in ps:
+                if p1 is not p2:
+                    key = frozenset((p1, p2))
+                    if key not in dists:
+                        x1, y1 = p1.pos
+                        x2, y2 = p2.pos
+                        dists[key] = ((x2 - x1) * (x2 - x1) + \
+                                      (y2 - y1) * (y2 - y1)) ** .5
+
         # generate connections
         self.cons = []
+        n_cons = conf.CONS_PER_PERSON
+        max_cons = conf.MAX_CONS_PER_PERSON
+        # give everyone connections biased towards people near them
+        for p in ps:
+            # distances have a non-zero minimum
+            others = dict((other, 1. / dists[frozenset((p, other))] ** \
+                                       conf.SHORT_CONNECTION_BIAS)
+                          for other in ps if other is not p)
+            for c in p.cons:
+                del others[c.other(p)]
+            targets = []
+            this_n_cons = ir(max(1, min(max_cons, min(len(others),
+                                                      gammavariate(*n_cons)))))
+            for i in xrange(this_n_cons - len(p.cons)):
+                other = weighted_rand(others)
+                targets.append(other)
+                del others[other]
+            for other in targets:
+                # need to add to dist to self.dists before creating Connection
+                key = frozenset((p, other))
+                used_dists[key] = dists[key]
+                c = Connection(self, (p, other), ('in-person',))
+                p.cons.append(c)
+                self.cons.append(c)
+                other.cons.append(c)
         # TODO
-        # give everyone a random number of connections biased towards people near them (use util.weighted_rand) to start with
-        # then group everyone who's connected into sets
+        # group everyone who's connected into sets
         # and while there's more than one set, take two sets and join them by connecting the two nearest people in either
-        #n_cons = conf.CONS_PER_PERSON
-        #max_cons = conf.MAX_CONS_PER_PERSON
-        #this_cons = max(1, min(max_cons, gammavariate(*n_cons)))
-        for i1, i2 in ((0, 1), (0, 2), (1, 3), (4, 3), (5, 2), (7, 1), (6, 8), (6, 4), (8, 5), (5, 3)):
-            c = Connection(self, (ps[i1], ps[i2]), ('in-person',)) ##
-            ps[i1].cons.append(c) ##
-            ps[i2].cons.append(c)
-            self.cons.append(c) ##
-        ps[0].recieve() ##
+
         # let someone know
-        #choice(ps).recieve()
+        choice(ps).recieve()
         # reset flags
         self.dirty = True
         self.paused = False
