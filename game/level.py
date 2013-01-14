@@ -121,7 +121,7 @@ Returns whether any methods are available, or None if already sent.
             colour = (255, 100, 100)
         else:
             colour = (100, 255, 100)
-        pg.draw.line(screen, colour, self.people[0].pos, self.people[1].pos)
+        pg.draw.aaline(screen, colour, self.people[0].pos, self.people[1].pos)
         if self.sending:
             x0, y0 = start = self.sending.pos
             x1, y1 = end = self.other().pos
@@ -133,6 +133,7 @@ Returns whether any methods are available, or None if already sent.
 class Person (object):
     def __init__ (self, level, pos):
         self.level = level
+        self.ident = None
         self.pos = pos
         self.cons = []
         self.knows = False
@@ -249,8 +250,25 @@ class Level (object):
                         dists[key] = ((x2 - x1) * (x2 - x1) + \
                                       (y2 - y1) * (y2 - y1)) ** .5
 
+        def add_con (p1, p2):
+            # need to add dist to self.dists before creating Connection
+            key = frozenset((p1, p2))
+            used_dists[key] = dists[key]
+            c = Connection(self, (p1, p2), ('in-person',))
+            self.cons.append(c)
+            p1.cons.append(c)
+            p2.cons.append(c)
+            g1 = groups[p1]
+            g2 = groups[p2]
+            g1.update(g2)
+            for p, g in groups.iteritems():
+                if g is g2:
+                    groups[p] = g1
+
         # generate connections
         self.cons = []
+        # and group by whether connected
+        groups = dict((p, set((p,))) for p in ps)
         n_cons = conf.CONS_PER_PERSON
         max_cons = conf.MAX_CONS_PER_PERSON
         # give everyone connections biased towards people near them
@@ -269,19 +287,22 @@ class Level (object):
                 targets.append(other)
                 del others[other]
             for other in targets:
-                # need to add to dist to self.dists before creating Connection
-                key = frozenset((p, other))
-                used_dists[key] = dists[key]
-                c = Connection(self, (p, other), ('in-person',))
-                p.cons.append(c)
-                self.cons.append(c)
-                other.cons.append(c)
-        # TODO
-        # group everyone who's connected into sets
-        # and while there's more than one set, take two sets and join them by connecting the two nearest people in either
+                add_con(p, other)
+        # reduce to one group by adding extra connections
+        frozen_groups = set(frozenset(g) for g in groups.itervalues())
+        while len(frozen_groups) > 1:
+            i = iter(frozen_groups)
+            g1 = next(i)
+            g2 = next(i)
+            dist, p1, p2 = min(min((dists[frozenset((p1, p2))], p1, p2)
+                                   for p2 in g2 if p2 is not p1) for p1 in g1)
+            add_con(p1, p2)
+            frozen_groups = set(frozenset(g) for g in groups.itervalues())
 
         # let someone know
-        choice(ps).recieve()
+        p = choice(ps)
+        p.recieve()
+        p.ident = 'initial' # mother, brother, etc.
         # reset flags
         self.dirty = True
         self.paused = False

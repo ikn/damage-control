@@ -12,7 +12,7 @@ from util import dd
 
 class Conf (object):
 
-    IDENT = 'game'
+    IDENT = 'damage-control'
     USE_SAVEDATA = False
     USE_FONTS = True
 
@@ -47,7 +47,7 @@ class Conf (object):
 
     # display
     WINDOW_ICON = None #IMG_DIR + 'icon.png'
-    WINDOW_TITLE = ''
+    WINDOW_TITLE = 'Damage Control'
     MOUSE_VISIBLE = dd(True) # per-backend
     FLAGS = 0
     FULLSCREEN = False
@@ -114,7 +114,7 @@ class Conf (object):
     PERSON_NEAREST = 20
     NUM_PEOPLE = 50
     CONS_PER_PERSON = (5, .5) # arguments to random.gammavariate
-    MAX_CONS_PER_PERSON = 7
+    MAX_CONS_PER_PERSON = 6
     SHORT_CONNECTION_BIAS = 4
     # map: running
     METHOD_SPEED = {
