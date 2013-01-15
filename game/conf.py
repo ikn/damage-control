@@ -98,30 +98,54 @@ class Conf (object):
                     n = SOUNDS.get(ident, 0)
                     SOUNDS[ident] = n + 1
 
-    # text rendering
-    # per-backend, each a {key: value} dict to update Game.fonts with
-    REQUIRED_FONTS = dd({})
-
     # graphics
-    NEWS_RECT = (0, 0, 150, 600)
-    MAP_RECT = (150, 0, 700, 600)
-    UI_RECT = (850, 0, 150, 600)
-    # map
+    UI_WIDTH = 149 # has 1px border in bg.png
+    WMAP_RECT = (UI_WIDTH, 0, RES[0] - 2 * UI_WIDTH, RES[1])
+    NEWS_LIST_RECT = (0, 40, UI_WIDTH, RES[1])
+    rhs_ui = RES[0] - UI_WIDTH
+    ACTIONS_LIST_RECT = (rhs_ui, 40, UI_WIDTH, RES[1])
+    # world map
     PERSON_ICON_RADIUS = 5
-    MAP_BORDER = 15 # contains no people
+    WMAP_BORDER = 15 # contains no people
+    # ui
+    UI_HEAD = {
+        'font size': 25,
+        'box height': 32
+    }
+    UI_LIST_GAP = 2
+    UI_LIST_ITEM = {
+        'bg colour': (255, 255, 255, 52),
+        'font size': 12,
+        'font colour': (255, 255, 255),
+        'padding': (5, 2) # x, y
+    }
+    BUTTON = {
+        'top colour': (255, 255, 255, 84),
+        'top width': 2,
+        'bottom colour': (164, 164, 164, 46),
+        'bottom width': 2
+    }
+
+    # text rendering
+    FONT = None
+    # per-backend, each a {key: value} dict to update Game.fonts with
+    REQUIRED_FONTS = dd({}, level = {
+        #'ui_list_item': (FONT, UI_LIST_ITEM['font size']),
+        #'ui_head': (FONT, UI_HEAD['font size'])
+    })
 
     # gameplay
-    # map initialisation
+    # world map initialisation
     PERSON_NEAREST = 20
     NUM_PEOPLE = 50
     CONS_PER_PERSON = lambda: gammavariate(5, .5)
     MAX_CONS_PER_PERSON = 6
     SHORT_CONNECTION_BIAS = 4
     METHODS_PER_CON = lambda: gammavariate(3, .5)
-    # map: running
+    # world map: running
     # if dist, speed is in pixels per second
     # else time is in frames
-    METHODS = { # TODO: fix values
+    METHODS = {
         'phone': {'dist': False, 'time': 6, 'freq': 1},
         'in person': {'dist': True, 'speed': 2, 'freq': 1},
         'e-mail': {'dist': False, 'time': 6, 'freq': 1},
