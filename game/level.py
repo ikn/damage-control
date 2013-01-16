@@ -12,14 +12,22 @@ def _setup_widgets (bg, *ws):
 
 
 def mk_ui (bg):
+    ui_w = conf.UI_WIDTH
+    news_r = conf.NEWS_LIST_RECT
+    actions_r = conf.ACTIONS_LIST_RECt
     wmap = Map(conf.WMAP_RECT[2:])
     c = ui.Container(
         (conf.WMAP_RECT[:2], wmap),
-        ((conf.NEWS_LIST_RECT[:2]), ui.List(conf.NEWS_LIST_RECT[2:],
-            ui.ListItem(conf.UI_WIDTH, 'Aoeu netoahun saothuntseoha tnshoeu.'),
-            ui.Button(conf.UI_WIDTH, 'C anoethu aotnsehuaoet hunst aohs.'),
-            ui.ListItem(conf.UI_WIDTH, 'Ft taoes oaetuheoa uthtonsu heontuhenot hth otn.'),
-            ui.ListItem(conf.UI_WIDTH, 'Ihen otheo th.')
+        ((news_r[0], 0), ui.Head((ui_w, conf.UI_HEAD_HEIGHT), 'NEWS')),
+        ((news_r[:2]), ui.List(news_r[2:],
+            ui.ListItem(ui_w, 'Aoeu netoahun saothuntseoha tnshoeu.'),
+            ui.ListItem(ui_w, 'Ft taoes oaetuheoa uthtonsu heontuhenot hth otn.'),
+            ui.ListItem(ui_w, 'Ihen otheo th.')
+        )),
+        ((actions_r[0], 0), ui.Head((ui_w, conf.UI_HEAD_HEIGHT), 'ACTIONS')),
+        ((news_r[:2]), ui.List(news_r[2:],
+            ui.Button(ui_w, 'Aoeu netoahun saothuntseoha tnshoeu.'),
+            ui.Button(ui_w, 'C anoethu aotnsehuaoet hunst aohs.')
         ))
     )
     _setup_widgets(bg, c)
