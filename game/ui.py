@@ -2,7 +2,7 @@ import pygame as pg
 from pygame import Rect
 
 from conf import conf
-from util import combine_drawn
+from util import combine_drawn, position_sfc
 
 
 # widgets have:
@@ -61,6 +61,10 @@ Takes any number of (pos, widget) tuples.  Widgets mustn't overlap.
         return combine_drawn(*rtn)
 
 
+class Head (Widget):
+    def __init__ (self, size, text):
+        pass # TODO
+
 class List (Container):
     """Widget containing a scrollable column of widgets."""
 
@@ -90,11 +94,19 @@ class List (Container):
 
 class ListItem (Widget):
     def __init__ (self, width, text):
+        # text is string or surface
         data = conf.UI_LIST_ITEM
-        self.sfc = render_text('ui list item', text, data['font colour'],
-                               width = width, bg = data['bg colour'],
-                               pad = data['padding'])[0]
-        size = (width, self.sfc.get_height())
+        if isinstance(text, basestring):
+            sfc = render_text('ui list item', text, data['font colour'],
+                              width = width, bg = data['bg colour'],
+                              pad = data['padding'])[0]
+        else:
+            sfc = pg.Surface(width, text.get_height() + 2 * data['padding'][1])
+            sfc = sfc.convert_alpha()
+            sfc.fill(data['bg colour'])
+            position_sfc(text, sfc)
+        size = (width, sfc.get_height())
+        self.sfc = sfc
         Widget.__init__(self, size)
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
@@ -107,6 +119,7 @@ class ListItem (Widget):
 
 
 class Button (ListItem):
+    # TODO: clicking, change on hover
     def __init__ (self, width, text, cb = None):
         ListItem.__init__ (self, width, text)
         data = conf.BUTTON

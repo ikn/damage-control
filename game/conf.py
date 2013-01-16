@@ -108,10 +108,8 @@ class Conf (object):
     PERSON_ICON_RADIUS = 5
     WMAP_BORDER = 15 # contains no people
     # ui
-    UI_HEAD = {
-        'font size': 25,
-        'box height': 32
-    }
+    UI_HEAD_HEIGHT = 32
+    UI_HEAD_FONT_SIZE = 25
     UI_LIST_GAP = 2
     UI_LIST_ITEM = {
         'bg colour': (255, 255, 255, 52),
@@ -131,7 +129,7 @@ class Conf (object):
     # per-backend, each a {key: value} dict to update Game.fonts with
     REQUIRED_FONTS = dd({}, level = {
         'ui list item': (FONT, UI_LIST_ITEM['font size']),
-        'ui head': (FONT, UI_HEAD['font size'])
+        'ui head': (FONT, UI_HEAD_FONT_SIZE)
     })
 
     # gameplay

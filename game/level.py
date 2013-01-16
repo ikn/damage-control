@@ -12,9 +12,9 @@ def _setup_widgets (bg, *ws):
 
 
 def mk_ui (bg):
-    wmap = Map((702, 600))
+    wmap = Map(conf.WMAP_RECT[2:])
     c = ui.Container(
-        ((149, 0), wmap),
+        (conf.WMAP_RECT[:2], wmap),
         ((conf.NEWS_LIST_RECT[:2]), ui.List(conf.NEWS_LIST_RECT[2:],
             ui.ListItem(conf.UI_WIDTH, 'Aoeu netoahun saothuntseoha tnshoeu.'),
             ui.Button(conf.UI_WIDTH, 'C anoethu aotnsehuaoet hunst aohs.'),
