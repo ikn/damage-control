@@ -63,7 +63,21 @@ Takes any number of (pos, widget) tuples.  Widgets mustn't overlap.
 
 class Head (Widget):
     def __init__ (self, size, text):
-        pass # TODO
+        Widget.__init__(self, size)
+        data = conf.UI_HEAD
+        text = render_text('ui head', text, data['font colour'],
+                           width = size[0], just = 1)[0]
+        self.text = pg.Surface(size).convert_alpha()
+        self.text.fill((0, 0, 0, 0))
+        position_sfc(text, self.text)
+
+    def draw (self, screen, pos = (0, 0), draw_bg = True):
+        Widget.draw(self, screen, pos, draw_bg)
+        if self.dirty:
+            screen.blit(self.text, pos)
+            self.dirty = False
+            return True
+        return False
 
 class List (Container):
     """Widget containing a scrollable column of widgets."""

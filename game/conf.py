@@ -109,7 +109,10 @@ class Conf (object):
     WMAP_BORDER = 15 # contains no people
     # ui
     UI_HEAD_HEIGHT = 32
-    UI_HEAD_FONT_SIZE = 25
+    UI_HEAD = {
+        'font size': 25,
+        'font colour': (255, 255, 255)
+    }
     UI_LIST_GAP = 2
     UI_LIST_ITEM = {
         'bg colour': (255, 255, 255, 52),
@@ -125,11 +128,10 @@ class Conf (object):
     }
 
     # text rendering
-    FONT = 'Jura-Regular.ttf'
     # per-backend, each a {key: value} dict to update Game.fonts with
     REQUIRED_FONTS = dd({}, level = {
-        'ui list item': (FONT, UI_LIST_ITEM['font size']),
-        'ui head': (FONT, UI_HEAD_FONT_SIZE)
+        'ui list item': ('Jura-Regular.ttf', UI_LIST_ITEM['font size']),
+        'ui head': ('Jura-DemiBold.ttf', UI_HEAD['font size'])
     })
 
     # gameplay

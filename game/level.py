@@ -14,7 +14,7 @@ def _setup_widgets (bg, *ws):
 def mk_ui (bg):
     ui_w = conf.UI_WIDTH
     news_r = conf.NEWS_LIST_RECT
-    actions_r = conf.ACTIONS_LIST_RECt
+    actions_r = conf.ACTIONS_LIST_RECT
     wmap = Map(conf.WMAP_RECT[2:])
     c = ui.Container(
         (conf.WMAP_RECT[:2], wmap),
@@ -25,8 +25,8 @@ def mk_ui (bg):
             ui.ListItem(ui_w, 'Ihen otheo th.')
         )),
         ((actions_r[0], 0), ui.Head((ui_w, conf.UI_HEAD_HEIGHT), 'ACTIONS')),
-        ((news_r[:2]), ui.List(news_r[2:],
-            ui.Button(ui_w, 'Aoeu netoahun saothuntseoha tnshoeu.'),
+        ((actions_r[:2]), ui.List(actions_r[2:],
+            ui.Button(ui_w, 'Oeaunth ehuoetnhu ehaotnuh aoeu hnaoe.'),
             ui.Button(ui_w, 'C anoethu aotnsehuaoet hunst aohs.')
         ))
     )
