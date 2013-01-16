@@ -1,3 +1,5 @@
+import pygame as pg
+
 from conf import conf
 from util import combine_drawn
 import ui
@@ -26,8 +28,8 @@ def mk_ui (bg):
         )),
         ((actions_r[0], 0), ui.Head((ui_w, conf.UI_HEAD_HEIGHT), 'ACTIONS')),
         ((actions_r[:2]), ui.List(actions_r[2:],
-            ui.Button(ui_w, 'Oeaunth ehuoetnhu ehaotnuh aoeu hnaoe.'),
-            ui.Button(ui_w, 'C anoethu aotnsehuaoet hunst aohs.')
+            ui.Button(ui_w, 'Oeaunth ehuoetnhu ehaotnuh aoeu hnaoe.', lambda: True),
+            ui.Button(ui_w, 'C anoethu aotnsehuaoet hunst aohs.', lambda: True)
         ))
     )
     _setup_widgets(bg, c)
@@ -37,6 +39,10 @@ def mk_ui (bg):
 class Level (object):
     def __init__ (self, game, event_handler):
         self.game = game
+        event_handler.add_event_handlers({
+            pg.MOUSEBUTTONDOWN: self._mbdown,
+            pg.MOUSEBUTTONUP: self._mbup
+        })
         for k, v in conf.REQUIRED_FONTS['level'].iteritems():
             game.fonts[k] = v
         ui.render_text = game.render_text
@@ -44,9 +50,21 @@ class Level (object):
 
     def init (self):
         self.ui, self.wmap = mk_ui(self.game.img('bg.png'))
-        # reset flags
+        # reset variables
+        self._clicked = {}
         self.dirty = True
         self.paused = False
+
+    def _mbdown (self, evt):
+        w = self.ui.click(evt.pos, evt)
+        if w:
+            self._clicked[evt.button] = w
+
+    def _mbup (self, evt):
+        b = evt.button
+        if b in self._clicked:
+            self._clicked[b].click(evt.pos, evt)
+            del self._clicked[b]
 
     def update (self):
         if self.paused:

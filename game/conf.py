@@ -77,6 +77,8 @@ class Conf (object):
     KEYS_UP = (pg.K_UP, pg.K_w, pg.K_z, pg.K_COMMA)
     KEYS_DOWN = (pg.K_DOWN, pg.K_s, pg.K_o)
     KEYS_DIRN = (KEYS_LEFT, KEYS_UP, KEYS_RIGHT, KEYS_DOWN)
+    CLICK_BTNS = (1, 2, 3)
+    SCROLL_BTNS = (4, 5)
 
     # audio
     MUSIC_AUTOPLAY = False # just pauses music
@@ -121,10 +123,8 @@ class Conf (object):
         'padding': (2, 2) # x, y
     }
     BUTTON = {
-        'top colour': (255, 255, 255, 84),
-        'top width': 2,
-        'bottom colour': (164, 164, 164, 46),
-        'bottom width': 2
+        'border width': 3,
+        'border colour': ((255, 255, 255, 90), (150, 150, 150, 46)) # lt, rb
     }
 
     # text rendering

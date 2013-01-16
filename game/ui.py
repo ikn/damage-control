@@ -2,24 +2,28 @@ import pygame as pg
 from pygame import Rect
 
 from conf import conf
-from util import combine_drawn, position_sfc
+from util import position_sfc, combine_drawn, blank_sfc
 
 
 # widgets have:
 #   .size (tuple)
 #   .click(pos, evt)
+#       returns widget to register for button release
 #   .draw(screen, pos = (0, 0), draw_bg = True)
 
 
 class Widget (object):
     def __init__ (self, size):
         self.size = size
+        self.pos = None
         self.dirty = True
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
-        if self.dirty and draw_bg:
-            screen.blit(self.bg, pos, (pos, self.size))
-            return True
+        if self.dirty:
+            self.pos = pos
+            if draw_bg:
+                screen.blit(self.bg, pos, (pos, self.size))
+                return True
         return False
 
 
@@ -41,11 +45,11 @@ Takes any number of (pos, widget) tuples.  Widgets mustn't overlap.
 
     def click (self, pos, evt):
         for (x, y), w in self.widgets:
-            if Rect(p, w.size).collidepoint:
-                w.click((pos[0] - x, pos[1] - y), evt)
-                break
+            if hasattr(w, 'click') and Rect((x, y), w.size).collidepoint(pos):
+                return w.click((pos[0] - x, pos[1] - y), evt)
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
+        Widget.draw(self, screen, pos, False)
         if self.dirty:
             for p, w in self.widgets:
                 w.dirty = True
@@ -67,8 +71,7 @@ class Head (Widget):
         data = conf.UI_HEAD
         text = render_text('ui head', text, data['font colour'],
                            width = size[0], just = 1)[0]
-        self.text = pg.Surface(size).convert_alpha()
-        self.text.fill((0, 0, 0, 0))
+        self.text = blank_sfc(size)
         position_sfc(text, self.text)
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
@@ -133,19 +136,41 @@ class ListItem (Widget):
 
 
 class Button (ListItem):
-    # TODO: clicking, change on hover
-    def __init__ (self, width, text, cb = None):
-        ListItem.__init__ (self, width, text)
+    def __init__ (self, width, text, cb, *args, **kwargs):
         data = conf.BUTTON
-        t = data['top width']
-        b = data['bottom width']
+        bw = data['border width']
+        bc = data['border colour']
+        ListItem.__init__(self, width - 2 * bw, text)
         w, h = self.size
-        h += t + b
+        w += 2 * bw
+        h += 2 * bw
         self.size = (w, h)
-        sfc = pg.Surface(self.size).convert_alpha()
-        sfc.fill((0, 0, 0, 0))
-        sfc.blit(self.sfc, (0, t))
-        sfc.fill(data['top colour'], (0, 0, w, t))
-        sfc.fill(data['bottom colour'], (0, h - b, w, b))
-        self.sfc = sfc
-        self.cb = cb
+        sfcs = []
+        for bc in (bc, tuple(reversed(bc))):
+            sfc = blank_sfc(self.size)
+            sfc.blit(self.sfc, (bw, bw))
+            sfc.fill(bc[0], (0, bw, bw, h))
+            sfc.fill(bc[0], (0, 0, w, bw))
+            sfc.fill(bc[1], (w - bw, bw, bw, h - 2 * bw))
+            sfc.fill(bc[1], (bw, h - bw, w - bw, bw))
+            sfcs.append(sfc)
+        self._sfc, self._click_sfc = sfcs
+        self.sfc = self._sfc
+        self.cb = lambda: cb(*args, **kwargs)
+        self._down = []
+
+    def click (self, pos, evt):
+        if evt.type == pg.MOUSEBUTTONDOWN and evt.button in conf.CLICK_BTNS \
+           and self.pos is not None:
+            self._down.append(evt.button)
+            if self.sfc != self._click_sfc:
+                self.sfc = self._click_sfc
+                self.dirty = True
+            return self
+        elif evt.type == pg.MOUSEBUTTONUP and self.sfc != self._sfc:
+            self._down.remove(evt.button)
+            if not self._down:
+                self.sfc = self._sfc
+                self.dirty = True
+                if Rect(self.pos, self.size).collidepoint(pos):
+                    self.cb()

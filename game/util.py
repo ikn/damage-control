@@ -129,3 +129,10 @@ def combine_drawn (*drawn):
         return True
     rects = sum((list(d) for d in drawn if d), [])
     return rects if rects else False
+
+
+def blank_sfc (size):
+    """Create a transparent surface with the given (width, height) size."""
+    sfc = pg.Surface(size).convert_alpha()
+    sfc.fill((0, 0, 0, 0))
+    return sfc
