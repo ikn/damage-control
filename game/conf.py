@@ -117,7 +117,7 @@ class Conf (object):
         'bg colour': (255, 255, 255, 52),
         'font size': 12,
         'font colour': (255, 255, 255),
-        'padding': (5, 2) # x, y
+        'padding': (2, 2) # x, y
     }
     BUTTON = {
         'top colour': (255, 255, 255, 84),
@@ -127,11 +127,11 @@ class Conf (object):
     }
 
     # text rendering
-    FONT = None
+    FONT = 'Jura-Regular.ttf'
     # per-backend, each a {key: value} dict to update Game.fonts with
     REQUIRED_FONTS = dd({}, level = {
-        #'ui_list_item': (FONT, UI_LIST_ITEM['font size']),
-        #'ui_head': (FONT, UI_HEAD['font size'])
+        'ui list item': (FONT, UI_LIST_ITEM['font size']),
+        'ui head': (FONT, UI_HEAD['font size'])
     })
 
     # gameplay

@@ -121,3 +121,11 @@ def convert_sfc (sfc):
     else:
         sfc = sfc.convert_alpha()
     return sfc
+
+
+def combine_drawn (*drawn):
+    """Combine the given drawn flags as returned by backend draw methods."""
+    if True in drawn:
+        return True
+    rects = sum((list(d) for d in drawn if d), [])
+    return rects if rects else False
