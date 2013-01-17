@@ -8,13 +8,13 @@ from util import ir, weighted_rand
 from ui import Widget
 
 
-def method_speed (method, fps, dist):
+def method_speed (method, dist):
     """Get a method's speed in fraction of total distance per frame."""
     method = conf.METHODS[method]
     if method['dist']:
-        return float(method['speed']) / (fps * dist)
+        return float(method['speed']) / (conf.DAY_FRAMES * dist)
     else:
-        return 1. / (fps * method['time'])
+        return 1. / (conf.DAY_FRAMES * method['time'])
 
 
 class Connection (object):
@@ -54,9 +54,7 @@ current_method: the method currently being used to send a message (None if
         self.people = people
         self.dist = dist = people[0].dist(people[1]) - \
                            2 * conf.PERSON_ICON_RADIUS
-        fps = conf.FPS[None]
-        methods = reversed(sorted((method_speed(m, fps, dist), m)
-                                  for m in methods))
+        methods = reversed(sorted((method_speed(m, dist), m) for m in methods))
         self.methods = OrderedDict((m, {'allowed': True, 'speed': s})
                                    for s, m in methods)
         self.sending = False

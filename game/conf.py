@@ -101,11 +101,13 @@ class Conf (object):
                     SOUNDS[ident] = n + 1
 
     # graphics
-    UI_WIDTH = 149 # has 1px border in bg.png
-    WMAP_RECT = (UI_WIDTH, 0, RES[0] - 2 * UI_WIDTH, RES[1])
-    NEWS_LIST_RECT = (0, 40, UI_WIDTH, RES[1])
-    rhs_ui = RES[0] - UI_WIDTH
-    ACTIONS_LIST_RECT = (rhs_ui, 40, UI_WIDTH, RES[1])
+    sidebar_t = 40
+    NEWS_LIST_RECT = (0, sidebar_t, 249, RES[1] - sidebar_t)
+    actions_w = 149
+    ACTIONS_LIST_RECT = (RES[0] - actions_w, sidebar_t, actions_w,
+                         RES[1] - sidebar_t)
+    WMAP_RECT = (NEWS_LIST_RECT[2], 0, RES[0] - NEWS_LIST_RECT[2] - actions_w,
+                 RES[1])
     # world map
     PERSON_ICON_RADIUS = 5
     WMAP_BORDER = 15 # contains no people
@@ -135,6 +137,7 @@ class Conf (object):
     })
 
     # gameplay
+    DAY_FRAMES = FPS['level']
     # world map initialisation
     PERSON_NEAREST = 20
     NUM_PEOPLE = 50
@@ -143,8 +146,8 @@ class Conf (object):
     SHORT_CONNECTION_BIAS = 4
     METHODS_PER_CON = lambda: gammavariate(3, .5)
     # world map: running
-    # if dist, speed is in pixels per second
-    # else time is in frames
+    # if dist, speed is in pixels per day
+    # else time is in days
     METHODS = {
         'phone': {'dist': False, 'time': 6, 'freq': 1},
         'in person': {'dist': True, 'speed': 2, 'freq': 1},
@@ -162,6 +165,35 @@ class Conf (object):
         'skywriting': {'dist': False, 'time': 6, 'freq': 1},
         'telegraph': {'dist': False, 'time': 6, 'freq': 1}
     }
+    # type: 'c' (connection), 'p' (person) or 'a' (area); area type requires
+    #       radius in pixels
+    # time: triangular distribution (min, mean, max) in days
+    # news: {text: freq} or tuple of texts for equal freqs; texts can contain
+    #       %t for time, %r for time range
+    ACTIONS = [
+        {
+            'desc': 'cut phone line',
+            'type': 'c',
+            'cost': 10,
+            'affects': ('phone', 'fax', 'telegraph'),
+            'time': (5, 7, 10),
+            'news': (
+'An engineer will be sent to fix reported telephone outages.  Job time ' \
+'estimate: %t.',
+            )
+        }, {
+            'desc': 'broadcast jamming signal',
+            'type': 'a',
+            'radius': 150,
+            'cost': 10,
+            'affects': ('telepathy', 'radio', 'pager'),
+            'time': (4, 6, 7),
+            'news': (
+'Dispruptions to wireless services have been detected.  We expect to find ' \
+'the source in %r.',
+            )
+        }
+    ]
 
 
 def translate_dd (d):

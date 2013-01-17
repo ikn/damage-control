@@ -4,6 +4,7 @@ from conf import conf
 from util import combine_drawn
 import ui
 from wmap import Map
+from action import Action
 
 
 def _setup_widgets (bg, *ws):
@@ -14,23 +15,22 @@ def _setup_widgets (bg, *ws):
 
 
 def mk_ui (bg):
-    ui_w = conf.UI_WIDTH
     news_r = conf.NEWS_LIST_RECT
     actions_r = conf.ACTIONS_LIST_RECT
     wmap = Map(conf.WMAP_RECT[2:])
     c = ui.Container(
         (conf.WMAP_RECT[:2], wmap),
-        ((news_r[0], 0), ui.Head((ui_w, conf.UI_HEAD_HEIGHT), 'NEWS')),
-        ((news_r[:2]), ui.List(news_r[2:],
-            ui.ListItem(ui_w, 'Aoeu netoahun saothuntseoha tnshoeu.'),
-            ui.ListItem(ui_w, 'Ft taoes oaetuheoa uthtonsu heontuhenot hth otn.'),
-            ui.ListItem(ui_w, 'Ihen otheo th.')
+        ((news_r[0], 0), ui.Head((news_r[2], conf.UI_HEAD_HEIGHT), 'NEWS')),
+        (news_r[:2], ui.List(news_r[2:],
+            ui.ListItem(news_r[2], 'Aoeu netoahun saothuntseoha tnshoeu.'),
+            ui.ListItem(news_r[2], 'Ft taoes oaetuheoa uthtonsu heontuhenot hth otn.'),
+            ui.ListItem(news_r[2], 'Ihen otheo th.')
         )),
-        ((actions_r[0], 0), ui.Head((ui_w, conf.UI_HEAD_HEIGHT), 'ACTIONS')),
-        ((actions_r[:2]), ui.List(actions_r[2:],
-            ui.Button(ui_w, 'Oeaunth ehuoetnhu ehaotnuh aoeu hnaoe.', lambda: True),
-            ui.Button(ui_w, 'C anoethu aotnsehuaoet hunst aohs.', lambda: True)
-        ))
+        ((actions_r[0], 0),
+         ui.Head((actions_r[2], conf.UI_HEAD_HEIGHT), 'ACTIONS')),
+        (actions_r[:2], ui.List(actions_r[2:], *[
+            Action(action).button for action in conf.ACTIONS
+        ]))
     )
     _setup_widgets(bg, c)
     return (c, wmap)
