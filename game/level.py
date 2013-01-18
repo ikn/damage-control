@@ -4,7 +4,8 @@ from conf import conf
 from util import combine_drawn
 import ui
 from wmap import Map
-from action import Action
+from action import mk_button
+from ext import evthandler as eh
 
 
 def _setup_widgets (bg, *ws):
@@ -29,7 +30,7 @@ def mk_ui (bg):
         ((actions_r[0], 0),
          ui.Head((actions_r[2], conf.UI_HEAD_HEIGHT), 'ACTIONS')),
         (actions_r[:2], ui.List(actions_r[2:], *[
-            Action(action).button for action in conf.ACTIONS
+            mk_button(wmap, action) for action in conf.ACTIONS
         ]))
     )
     _setup_widgets(bg, c)
@@ -43,6 +44,9 @@ class Level (object):
             pg.MOUSEBUTTONDOWN: self._mbdown,
             pg.MOUSEBUTTONUP: self._mbup
         })
+        event_handler.add_key_handlers([
+            (conf.KEYS_BACK, self._cancel, eh.MODE_ONDOWN)
+        ])
         for k, v in conf.REQUIRED_FONTS['level'].iteritems():
             game.fonts[k] = v
         ui.render_text = game.render_text
@@ -66,12 +70,22 @@ class Level (object):
             self._clicked[b].click(evt.pos, evt)
             del self._clicked[b]
 
+    def _cancel (self, *args):
+        if self.wmap.selecting:
+            self.wmap.cancel_selecting()
+        else:
+            self.game.quit_backend()
+
     def update (self):
         if self.paused:
             return
         news = self.wmap.update()
-        #if news:
-        #   self.news.add(*news)
+        if news:
+            print news
+            #for item in news:
+                #self.news.insert(0, item)
+            #if self.news.range[0] == 0:
+                #self.news.scroll_to(0)
 
     def draw (self, screen):
         rtn = False

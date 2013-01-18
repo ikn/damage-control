@@ -231,8 +231,11 @@ class Person (object):
 class Map (Widget):
     def __init__ (self, size):
         Widget.__init__(self, size)
-        w, h = self.size
+        self.selecting = False
+        self._actions = []
+        self._news = []
         # generate people
+        w, h = self.size
         self.people = ps = []
         dists = {}
         self.dists = used_dists = {}
@@ -244,14 +247,16 @@ class Map (Widget):
         for i in range(conf.NUM_PEOPLE):
             while True:
                 x, y = randint(x0, x1), randint(y0, y1)
+                this_dists = {}
                 for p in ps:
                     ox, oy = p.pos
                     dist = ((ox - x) * (ox - x) + (oy - y) * (oy - y)) ** .5
                     if dist < nearest:
                         break
+                    this_dists[p] = dist
                 else:
                     new_p = Person(self, (x, y))
-                    if ps:
+                    for p, dist in this_dists.iteritems():
                         dists[frozenset((new_p, p))] = dist
                     ps.append(new_p)
                     break
@@ -341,16 +346,47 @@ class Map (Widget):
             pass # TODO
         return None
 
+    def area (self, pos):
+        """Get area nearest the given position."""
+        pass # TODO
+
     def click (self, pos, evt):
         pass # TODO
 
+    def cancel_selecting (self):
+        self.selecting = False
+        # TODO: make selected area blank
+
+    def ask_select_target (self, action, a_type):
+        """Ask the player to select a target for an action."""
+        if self.selecting:
+            self.cancel_selecting()
+        self.selecting = action
+        # TODO: make selected area show 'please select a(n) person/connection/area' with Cancel button
+        # adds OK button when selected something, with callback:
+        #self.cancel_selecting()
+        #time, news = action.start(self.people[0])
+        #self._actions.append([action, time])
+        #if news is not None:
+            #self._news.append(news)
+
     def update (self):
+        for a in list(self._actions):
+            # a is (Action, time left)
+            a[1] -= 1
+            if a[1] <= 0:
+                self._actions.remove(a)
+                news = a[0].end()
+                if news is not None:
+                    self._news.append(news)
         for p in self.people:
             p.update()
         for c in self.cons:
             c.update()
         self.dirty = True
-        return [] # news
+        news = self._news
+        self._news = []
+        return news
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
         Widget.draw(self, screen, pos, draw_bg)

@@ -139,8 +139,8 @@ class Conf (object):
     # gameplay
     DAY_FRAMES = FPS['level']
     # world map initialisation
-    PERSON_NEAREST = 20
-    NUM_PEOPLE = 50
+    PERSON_NEAREST = 1
+    NUM_PEOPLE = 300
     CONS_PER_PERSON = lambda: gammavariate(5, .5)
     MAX_CONS_PER_PERSON = 6
     SHORT_CONNECTION_BIAS = 4
@@ -168,8 +168,9 @@ class Conf (object):
     # type: 'c' (connection), 'p' (person) or 'a' (area); area type requires
     #       radius in pixels
     # time: triangular distribution (min, mean, max) in days
-    # news: {text: freq} or tuple of texts for equal freqs; texts can contain
-    #       %t for time, %r for time range
+    # news *: {text: freq} or tuple of texts for equal freqs; can contain %p/%P
+    #         for person, %a for area
+    # news_start can contain %t for time, %r for time range
     ACTIONS = [
         {
             'desc': 'cut phone line',
@@ -177,9 +178,11 @@ class Conf (object):
             'cost': 10,
             'affects': ('phone', 'fax', 'telegraph'),
             'time': (5, 7, 10),
-            'news': (
+            'news start': (
 'An engineer will be sent to fix reported telephone outages.  Job time ' \
 'estimate: %t.',
+            ), 'news end': (
+'a',
             )
         }, {
             'desc': 'broadcast jamming signal',
@@ -188,9 +191,11 @@ class Conf (object):
             'cost': 10,
             'affects': ('telepathy', 'radio', 'pager'),
             'time': (4, 6, 7),
-            'news': (
+            'news start': (
 'Dispruptions to wireless services have been detected.  We expect to find ' \
 'the source in %r.',
+            ), 'news end': (
+None,
             )
         }
     ]
