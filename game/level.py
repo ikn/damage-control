@@ -20,6 +20,7 @@ def mk_ui (bg):
     actions_r = conf.ACTIONS_LIST_RECT
     sel = Selected(bg)
     wmap = Map(conf.WMAP_RECT[2:], sel)
+    sel.wmap = wmap
     news = ui.List(news_r[2:])
     c = ui.Container(
         (conf.WMAP_RECT[:2], wmap),

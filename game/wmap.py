@@ -155,7 +155,7 @@ Returns whether any methods are available, or None if already sent.
 class Person (object):
     def __init__ (self, wmap, pos):
         self.wmap = wmap
-        self.name = None
+        self.name = 'Some guy'
         self.pos = pos
         self.cons = []
         self.knows = False
@@ -352,7 +352,7 @@ class Map (Widget):
             for c in self.cons:
                 pass # TODO: only if within some radius
         if 'a' in types:
-            pass # TODO: return (self.area(pos), n_people, n_cons)
+            pass # TODO: return (pos, self.area(pos), n_people, n_cons)
         return None
 
     def area (self, pos):
@@ -371,22 +371,24 @@ class Map (Widget):
         self.selecting = False
         self._selected.show(self._selected.showing)
 
+    def start_action (self):
+        action = self.selecting
+        self.selecting = False
+        time, news = action.start(self._selected.showing)
+        self._actions.append([action, time])
+        if news is not None:
+            self._news.append(news)
+
     def ask_select_target (self, action):
         """Ask the player to select a target for an action."""
         self.selecting = action
-        # Selected.showing_type is None, 'c', 'p', 'a', 'c ask', 'p ask' or
-        # 'a ask'
+        # Selected.showing_type is '', 'c', 'p', 'a', ' ask', 'c ask', 'p ask'
+        # or 'a ask'
         sel = self._selected
         if sel.showing is None or sel.showing_type[0] != action.type:
             sel.show(None, True)
         else:
             sel.show(sel.showing, True)
-        # OK callback:
-        #self.selecting = False
-        #time, news = action.start(self.people[0])
-        #self._actions.append([action, time])
-        #if news is not None:
-            #self._news.append(news)
 
     def update (self):
         for a in list(self._actions):

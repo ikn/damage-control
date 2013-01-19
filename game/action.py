@@ -1,5 +1,6 @@
 from random import choice, triangular
 
+import pygame as pg
 from pygame import Surface
 
 from conf import conf
@@ -52,7 +53,7 @@ class Action (object):
         elif data['type'] == 'c':
             t_pos = target.centre
         else: # data['type'] == 'a'
-            t_pos = target
+            t_pos = target[0]
         n_data['a'] = self._wmap.area(t_pos)
         # generate initial news and register with map
         news = data['news start']
@@ -68,6 +69,15 @@ class Selected (ui.Container):
         self.size = conf.SELECTED_RECT[2:]
         self._bg = bg
         self.show(None)
+
+    def _cancel (self, evt, last_up, inside):
+        if last_up and inside:
+            self.wmap.cancel_selecting()
+
+    def _start (self, evt, last_up, inside):
+        if last_up and inside:
+            self.wmap.start_action()
+            self.wmap.cancel_selecting()
 
     def show (self, obj, ask = False):
         # store what we're showing
@@ -119,20 +129,22 @@ class Selected (ui.Container):
                 #obj.img
             #)
         else: # area
-            name, n_people, n_cons = obj
+            pos, name, n_people, n_cons = obj
             body_text = 'contains {0} people, {1} connections'
             data = (
                 (('subhead', 'Selected: {0}'.format(name), width),),
                 (('normal', body_text.format(n_people, n_cons), width),)
             )
-        if isinstance(data[0], Surface) or isinstance(data[0][0], basestring):
+        if isinstance(data[0], pg.Surface) or \
+           isinstance(data[0][0], basestring):
             data = (data,)
         if ask:
-            data += (5, (ui.Button(width, 'Cancel', lambda *args: None),),)
+            data += (5, (ui.Button(width, 'Cancel', self._cancel),),)
             if obj is None:
                 pass # TODO: show 'please select a(n) person/connection/area'
             else:
-                data += (5, (ui.Button(width, 'OK', lambda *args: None),),)
+                # TODO: callback (self = wmap):
+                data += (5, (ui.Button(width, 'OK', self._start),),)
         # generate widgets
         ws = []
         y = 0
@@ -145,7 +157,7 @@ class Selected (ui.Container):
             # create widgets and position in x
             x = 0
             for w in row:
-                if isinstance(w, Surface):
+                if isinstance(w, pg.Surface):
                     w = ui.Img(w)
                 elif isinstance(w, int):
                     # padding

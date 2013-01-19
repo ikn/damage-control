@@ -173,7 +173,7 @@ class Conf (object):
     ACTIONS = [
         {
             'desc': 'cut phone line',
-            'type': 'c',
+            'type': 'p',
             'cost': 10,
             'affects': ('phone', 'fax', 'telegraph'),
             'time': (5, 7, 10),
