@@ -19,14 +19,11 @@ def mk_ui (bg):
     news_r = conf.NEWS_LIST_RECT
     actions_r = conf.ACTIONS_LIST_RECT
     wmap = Map(conf.WMAP_RECT[2:])
+    news = ui.List(news_r[2:])
     c = ui.Container(
         (conf.WMAP_RECT[:2], wmap),
         ((news_r[0], 0), ui.Head((news_r[2], conf.UI_HEAD_HEIGHT), 'NEWS')),
-        (news_r[:2], ui.List(news_r[2:],
-            ui.ListItem(news_r[2], 'Aoeu netoahun saothuntseoha tnshoeu.'),
-            ui.ListItem(news_r[2], 'Ft taoes oaetuheoa uthtonsu heontuhenot hth otn.'),
-            ui.ListItem(news_r[2], 'Ihen otheo th.')
-        )),
+        (news_r[:2], news),
         ((actions_r[0], 0),
          ui.Head((actions_r[2], conf.UI_HEAD_HEIGHT), 'ACTIONS')),
         (actions_r[:2], ui.List(actions_r[2:], *[
@@ -34,7 +31,7 @@ def mk_ui (bg):
         ]))
     )
     _setup_widgets(bg, c)
-    return (c, wmap)
+    return (c, wmap, news)
 
 
 class Level (object):
@@ -53,7 +50,8 @@ class Level (object):
         self.init()
 
     def init (self):
-        self.ui, self.wmap = mk_ui(self.game.img('bg.png'))
+        self.ui, self.wmap, self.news = mk_ui(self.game.img('bg.png'))
+        # TODO: add initial text (as news)
         # reset variables
         self._clicked = {}
         self.dirty = True
@@ -76,16 +74,17 @@ class Level (object):
         else:
             self.game.quit_backend()
 
+    def add_news (self, *items):
+        w = conf.NEWS_LIST_RECT[2]
+        for item in items:
+            self.news.insert(0, ui.ListItem(w, item))
+
     def update (self):
         if self.paused:
             return
         news = self.wmap.update()
         if news:
-            print news
-            #for item in news:
-                #self.news.insert(0, item)
-            #if self.news.range[0] == 0:
-                #self.news.scroll_to(0)
+            self.add_news(*news)
 
     def draw (self, screen):
         rtn = False

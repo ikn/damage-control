@@ -348,7 +348,7 @@ class Map (Widget):
 
     def area (self, pos):
         """Get area nearest the given position."""
-        pass # TODO
+        return '<area>' # TODO
 
     def click (self, pos, evt):
         pass # TODO

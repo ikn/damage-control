@@ -5,8 +5,9 @@ from util import ir, weighted_rand
 import ui
 
 def mk_button (wmap, action):
-    def cb ():
-        Action(wmap, action)
+    def cb (evt, last_up, inside):
+        if last_up and inside:
+            Action(wmap, action)
 
     return ui.Button(conf.ACTIONS_LIST_RECT[2], action['desc'], cb)
 
@@ -45,7 +46,7 @@ class Action (object):
             n_data['P'] = p.capitalize()
             t_pos = target.pos
         elif data['type'] == 'c':
-            p1, p2 = c.people
+            p1, p2 = target.people
             t_pos = (.5 * (p1.pos[0] + p2.pos[0]), .5 * (p1.pos[1], p2.pos[1]))
         else: # data['type'] == 'a'
             t_pos = target

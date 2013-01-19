@@ -83,23 +83,124 @@ class Head (Widget):
         return False
 
 class List (Container):
-    """Widget containing a scrollable column of widgets."""
+    """Widget containing a scrollable column of widgets.
+
+    METHODS
+
+append
+insert
+pop
+scroll_by
+scroll_to
+
+    ATTRIBUTES
+
+top: index of top visible widget.
+bottom: index of bottom visible widget + 1.
+
+"""
 
     def __init__ (self, size, *widgets):
+        Widget.__init__(self, size)
         self._widgets_before = []
-        ws = []
-        h = size[1]
-        g = conf.UI_LIST_GAP
-        y = 0
-        for i, w in enumerate(widgets):
-            wh = w.size[1]
-            if y + wh > h:
-                self._widgets_after = list(widgets[i + 1:])
-                break
-            ws.append([(0, y), w])
-            y += wh + g
-        Container.__init__(self, *ws)
-        self.size = size
+        self.widgets = []
+        self._widgets_after = []
+        self.top = 0
+        self.bottom = 0
+        self.append(*widgets)
+        start = len(self._widgets_before)
+
+    def __len__ (self):
+        return len(self._widgets_before) + len(self.widgets) + \
+               len(self._widgets_after)
+
+    def append (self, *ws):
+        after = self._widgets_after
+        if after:
+            after.extend(ws)
+        else:
+            # start below last widget
+            visible = self.widgets
+            g = conf.UI_LIST_GAP
+            if visible:
+                (x, y), last = visible[-1]
+                y += last.size[1] + g
+            else:
+                y = 0
+            h = self.size[1]
+            for i, w in enumerate(ws):
+                wh = w.size[1]
+                if y + wh > h:
+                    # doesn't fit
+                    after.extend(ws[i + 1:])
+                    break
+                visible.append([(0, y), w])
+                y += wh + g
+            self.dirty = True
+            self.bottom = self.top + len(visible)
+
+    def insert (self, i, widget):
+        if i < self.top:
+            self._widgets_before.insert(i, widget)
+            self.top += 1
+            self.bottom += 1
+        elif i >= self.bottom and self._widgets_after:
+            self._widgets_after.insert(i - self.bottom, widget)
+        else:
+            # will (want to) be visible: need to reallocate positions
+            ws = self.widgets
+            readd = [widget] + [w for p, w in ws[i - self.top:]]
+            self.widgets = ws[:i - self.top]
+            readd += self._widgets_after
+            self._widgets_after = []
+            self.append(*readd)
+            self.dirty = True
+
+    def pop (self, i):
+        if i < self.top:
+            self._widgets_before.pop(i)
+        elif i >= self.bottom:
+            self._widgets_after.pop(i - self.bottom)
+        else:
+            ws = self.widgets
+            i -= self.top
+            ws.pop(i)
+            self.widgets = ws[:i]
+            self.append(*(w for p, w in ws[i:]))
+            self.dirty = True
+
+    def scroll_by (self, n):
+        if n == 0:
+            return
+        if n < 0:
+            before = self._widgets_before
+            if not before:
+                # nothing to show
+                return
+            readd = before[n:] + [w for p, w in self.widgets] + \
+                    self._widgets_after
+            self._widgets_before = before[:n]
+            self.widgets = []
+            self._widgets_after = []
+            self.append(*readd)
+        else: # n > 0
+            if not self._widgets_after:
+                # nothing to show
+                return
+            ws = [w for p, w in self.widgets]
+            self._widgets_before.extend(ws[:n])
+            self.widgets = []
+            readd = ws[n:] + self._widgets_after
+            self._widgets_after = []
+            self.append(*readd)
+        self.dirty = True
+
+    def scroll_to (self, n):
+        if n < self.top:
+            self.scroll_by(n - self.top)
+        elif n >= self.bottom:
+            self.scroll_by(self.bottom + 1 - n)
+        # else already visible
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
         rtn = False
@@ -136,6 +237,24 @@ class ListItem (Widget):
 
 
 class Button (ListItem):
+    """A button.
+
+    CONSTRUCTOR
+
+Button(width, text, cb, *args, **kwargs)
+
+width: width in pixels.
+text: text to display, or a surface to blit centred.
+cb, args, kwargs: cb(evt, last_up, inside, *args, **kwargs) is called on mouse
+                  clicks, where:
+    evt: the Pygame mouse event (button down or up).
+    last_up: this is a button up event and is the last mouse button that was
+             holding this button widget down.
+    inside: this event occurred within the button widget (always true for
+            button down events).
+
+"""
+
     def __init__ (self, width, text, cb, *args, **kwargs):
         data = conf.BUTTON
         bw = data['border width']
@@ -156,12 +275,13 @@ class Button (ListItem):
             sfcs.append(sfc)
         self._sfc, self._click_sfc = sfcs
         self.sfc = self._sfc
-        self.cb = lambda: cb(*args, **kwargs)
+        self.cb = lambda *pre_args: cb(*(pre_args + args), **kwargs)
         self._down = []
 
     def click (self, pos, evt):
         if evt.type == pg.MOUSEBUTTONDOWN and evt.button in conf.CLICK_BTNS \
            and self.pos is not None:
+            self.cb(evt, False, True)
             self._down.append(evt.button)
             if self.sfc != self._click_sfc:
                 self.sfc = self._click_sfc
@@ -172,5 +292,5 @@ class Button (ListItem):
             if not self._down:
                 self.sfc = self._sfc
                 self.dirty = True
-                if Rect(self.pos, self.size).collidepoint(pos):
-                    self.cb()
+            self.cb(evt, not self._down,
+                    bool(Rect(self.pos, self.size).collidepoint(pos)))

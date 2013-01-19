@@ -139,8 +139,8 @@ class Conf (object):
     # gameplay
     DAY_FRAMES = FPS['level']
     # world map initialisation
-    PERSON_NEAREST = 1
-    NUM_PEOPLE = 300
+    PERSON_NEAREST = 20
+    NUM_PEOPLE = 50
     CONS_PER_PERSON = lambda: gammavariate(5, .5)
     MAX_CONS_PER_PERSON = 6
     SHORT_CONNECTION_BIAS = 4
