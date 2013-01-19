@@ -339,16 +339,20 @@ class Map (Widget):
         p.recieve()
         p.name = 'initial' # mother, brother, etc.
 
-    def obj_at (self, pos, types = ('c', 'p', 'a')):
-        """Get object (Person, Connection, position or None) at a position."""
-        px, py = pos
-        r = conf.PERSON_ICON_RADIUS
-        for p in self.people:
-            x, y = p.pos
-            if ((px - x) * (px - x) + (py - y) * (py - y)) ** .5 <= r:
-                return p
-        for c in self.cons:
-            pass # TODO
+    def obj_at (self, pos, types = 'cap'):
+        """Get object at a position, as taken by Selected.show."""
+        if 'p' in types:
+            px, py = pos
+            r = conf.PERSON_ICON_RADIUS
+            for p in self.people:
+                x, y = p.pos
+                if ((px - x) * (px - x) + (py - y) * (py - y)) ** .5 <= r:
+                    return p
+        if 'c' in types:
+            for c in self.cons:
+                pass # TODO: only if within some radius
+        if 'a' in types:
+            pass # TODO: return (self.area(pos), n_people, n_cons)
         return None
 
     def area (self, pos):
@@ -356,21 +360,27 @@ class Map (Widget):
         return '<area>' # TODO
 
     def click (self, pos, evt):
-        print self.obj_at(pos)
+        if evt.button in conf.CLICK_BTNS:
+            if self.selecting:
+                types = self.selecting.type
+            else:
+                types = 'cap'
+            self._selected.show(self.obj_at(pos, types), bool(self.selecting))
 
-    def ask_select_target (self, action, a_type):
+    def cancel_selecting (self):
+        self.selecting = False
+        self._selected.show(self._selected.showing)
+
+    def ask_select_target (self, action):
         """Ask the player to select a target for an action."""
         self.selecting = action
         # Selected.showing_type is None, 'c', 'p', 'a', 'c ask', 'p ask' or
         # 'a ask'
         sel = self._selected
-        if sel.showing_type is not None:
-            if sel.showing_type[0] != action.type:
-                sel.show(None)
-            else:
-                sel.show(sel.showing, True)
-        # TODO: make selected area show 'please select a(n) person/connection/area' with Cancel button
-        # adds OK button when selected something; add buttons straight away if something already selected
+        if sel.showing is None or sel.showing_type[0] != action.type:
+            sel.show(None, True)
+        else:
+            sel.show(sel.showing, True)
         # OK callback:
         #self.selecting = False
         #time, news = action.start(self.people[0])

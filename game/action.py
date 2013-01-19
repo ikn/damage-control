@@ -3,7 +3,7 @@ from random import choice, triangular
 from pygame import Surface
 
 from conf import conf
-from util import ir, weighted_rand
+from util import ir, weighted_rand, combine_drawn
 import wmap
 import ui
 
@@ -19,7 +19,8 @@ class Action (object):
     def __init__ (self, wmap, data):
         self._wmap = wmap
         self._data = data
-        wmap.ask_select_target(self, data['type'])
+        self.type = data['type']
+        wmap.ask_select_target(self)
 
     def _mk_news (self, items):
         if not isinstance(items, dict):
@@ -71,14 +72,14 @@ class Selected (ui.Container):
     def show (self, obj, ask = False):
         # store what we're showing
         if obj is None:
-            showing_type = None
+            showing_type = ''
         elif isinstance(obj, wmap.Connection):
             showing_type = 'c'
         elif isinstance(obj, wmap.Person):
             showing_type = 'p'
         else: # area
             showing_type = 'a'
-        if ask and isinstance(showing_type, basestring):
+        if ask:
             showing_type += ' ask'
         if hasattr(self, 'showing') and obj == self.showing and \
            showing_type == self.showing_type:
@@ -87,14 +88,12 @@ class Selected (ui.Container):
         self.showing_type = showing_type
         # data is a list of rows, each a list of widget representations, or
         # just a row if there's only one row.  Widgets are vertically centred
-        # within rows.  Representations are (font, text, width), a surface, or
-        # an int for padding.
+        # within rows.  Representations are (font, text, width), a surface, a
+        # Widget, or an int for padding.  A row can also be an int for padding.
         width = conf.ACTIONS_LIST_RECT[2]
         if obj is None:
-            self.showing_type = None
             data = (('subhead', 'Nothing selected', width),)
-        elif isinstance(obj, wmap.Connection):
-            self.showing_type = 'c'
+        elif showing_type[0] == 'c':
             current_method = obj.current_method if obj.sending else None
             s = ''
             for method, data in obj.methods.iteritems():
@@ -108,8 +107,7 @@ class Selected (ui.Container):
                 (('normal', s, None),),
                 (('normal', '{0} km'.format(ir(obj.dist)), None),)
             )
-        elif isinstance(obj, wmap.Person):
-            self.showing_type = 'p'
+        elif showing_type[0] == 'p':
             data = (
                 ('subhead', 'Selected: {0}'.format(obj.name), width),
             )
@@ -121,7 +119,6 @@ class Selected (ui.Container):
                 #obj.img
             #)
         else: # area
-            self.showing_type = 'a'
             name, n_people, n_cons = obj
             body_text = 'contains {0} people, {1} connections'
             data = (
@@ -130,10 +127,19 @@ class Selected (ui.Container):
             )
         if isinstance(data[0], Surface) or isinstance(data[0][0], basestring):
             data = (data,)
+        if ask:
+            data += (5, (ui.Button(width, 'Cancel', lambda *args: None),),)
+            if obj is None:
+                pass # TODO: show 'please select a(n) person/connection/area'
+            else:
+                data += (5, (ui.Button(width, 'OK', lambda *args: None),),)
         # generate widgets
         ws = []
         y = 0
         for row in data:
+            if isinstance(row, int):
+                y += row
+                continue
             this_ws = []
             hs = []
             # create widgets and position in x
@@ -145,6 +151,8 @@ class Selected (ui.Container):
                     # padding
                     x += w
                     continue
+                elif isinstance(w, ui.Widget):
+                    pass
                 else:
                     # text
                     font, text, ww = w
@@ -163,5 +171,9 @@ class Selected (ui.Container):
 
     def draw (self, screen, pos, draw_bg = True):
         # Container doesn't draw its BG, but we want to, so call Widget.draw
-        ui.Widget.draw(self, screen, pos, draw_bg)
-        return ui.Container.draw(self, screen, pos, draw_bg)
+        rtn = False
+        if ui.Widget.draw(self, screen, pos, draw_bg):
+            rtn = True
+            draw_bg = False
+        return combine_drawn(rtn,
+                             ui.Container.draw(self, screen, pos, draw_bg))
