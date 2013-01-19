@@ -39,6 +39,7 @@ draw
 
 people: as given.
 dist: length of the connection line, in pixels.
+centre: (x, y) position of the line's centre (ints).
 methods: {method: {'allowed': allowed, 'speed': speed}} OrderedDict for each
          available method, fastest first.
 sending: the target person if currently sending a message, else None.
@@ -54,6 +55,9 @@ current_method: the method currently being used to send a message (None if
         self.people = people
         self.dist = dist = people[0].dist(people[1]) - \
                            2 * conf.PERSON_ICON_RADIUS
+        x1, y1 = people[0].pos
+        x2, y2 = people[1].pos
+        self.centre = (ir(.5 * (x1 + x2)), ir(5 * (y1 + y2)))
         methods = reversed(sorted((method_speed(m, dist), m) for m in methods))
         self.methods = OrderedDict((m, {'allowed': True, 'speed': s})
                                    for s, m in methods)
@@ -151,7 +155,7 @@ Returns whether any methods are available, or None if already sent.
 class Person (object):
     def __init__ (self, wmap, pos):
         self.wmap = wmap
-        self.ident = None
+        self.name = None
         self.pos = pos
         self.cons = []
         self.knows = False
@@ -229,8 +233,9 @@ class Person (object):
 
 
 class Map (Widget):
-    def __init__ (self, size):
+    def __init__ (self, size, selected):
         Widget.__init__(self, size)
+        self._selected = selected
         self.selecting = False
         self._actions = []
         self._news = []
@@ -332,10 +337,10 @@ class Map (Widget):
         self.n_know = 0
         p = choice(ps)
         p.recieve()
-        p.ident = 'initial' # mother, brother, etc.
+        p.name = 'initial' # mother, brother, etc.
 
-    def obj_at (self, pos):
-        """Get object (Person, Connection or None) at the given position."""
+    def obj_at (self, pos, types = ('c', 'p', 'a')):
+        """Get object (Person, Connection, position or None) at a position."""
         px, py = pos
         r = conf.PERSON_ICON_RADIUS
         for p in self.people:
@@ -351,20 +356,23 @@ class Map (Widget):
         return '<area>' # TODO
 
     def click (self, pos, evt):
-        pass # TODO
-
-    def cancel_selecting (self):
-        self.selecting = False
-        # TODO: make selected area blank
+        print self.obj_at(pos)
 
     def ask_select_target (self, action, a_type):
         """Ask the player to select a target for an action."""
-        if self.selecting:
-            self.cancel_selecting()
         self.selecting = action
+        # Selected.showing_type is None, 'c', 'p', 'a', 'c ask', 'p ask' or
+        # 'a ask'
+        sel = self._selected
+        if sel.showing_type is not None:
+            if sel.showing_type[0] != action.type:
+                sel.show(None)
+            else:
+                sel.show(sel.showing, True)
         # TODO: make selected area show 'please select a(n) person/connection/area' with Cancel button
-        # adds OK button when selected something, with callback:
-        #self.cancel_selecting()
+        # adds OK button when selected something; add buttons straight away if something already selected
+        # OK callback:
+        #self.selecting = False
         #time, news = action.start(self.people[0])
         #self._actions.append([action, time])
         #if news is not None:

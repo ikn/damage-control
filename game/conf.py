@@ -104,36 +104,35 @@ class Conf (object):
     sidebar_t = 40
     NEWS_LIST_RECT = (0, sidebar_t, 249, RES[1] - sidebar_t)
     actions_w = 149
+    sel_h = 200
+    SELECTED_RECT = (RES[0] - actions_w + 2, RES[1] - sel_h, actions_w - 4,
+                     sel_h - 2)
     ACTIONS_LIST_RECT = (RES[0] - actions_w, sidebar_t, actions_w,
-                         RES[1] - sidebar_t)
+                         RES[1] - sidebar_t - sel_h)
     WMAP_RECT = (NEWS_LIST_RECT[2], 0, RES[0] - NEWS_LIST_RECT[2] - actions_w,
                  RES[1])
     # world map
     PERSON_ICON_RADIUS = 5
     WMAP_BORDER = 15 # contains no people
     # ui
-    UI_HEAD_HEIGHT = 32
-    UI_HEAD = {
-        'font size': 25,
-        'font colour': (255, 255, 255)
-    }
-    UI_LIST_GAP = 2
-    UI_LIST_ITEM = {
+    HEAD_HEIGHT = 32
+    LIST_GAP = 2
+    LIST_ITEM = {
         'bg colour': (255, 255, 255, 52),
-        'font size': 12,
-        'font colour': (255, 255, 255),
         'padding': (2, 2) # x, y
     }
-    BUTTON = {
-        'border width': 3,
-        'border colour': ((255, 255, 255, 90), (150, 150, 150, 46)) # lt, rb
+    BUTTON_BORDER = {
+        'width': 3,
+        'colour': ((255, 255, 255, 90), (150, 150, 150, 46)) # lt, rb
     }
 
     # text rendering
+    TEXT_COLOUR = (255, 255, 255)
     # per-backend, each a {key: value} dict to update Game.fonts with
     REQUIRED_FONTS = dd({}, level = {
-        'ui list item': ('Jura-Regular.ttf', UI_LIST_ITEM['font size']),
-        'ui head': ('Jura-DemiBold.ttf', UI_HEAD['font size'])
+        'normal': ('Jura-Regular.ttf', 12),
+        'head': ('Jura-DemiBold.ttf', 25),
+        'subhead': ('Jura-DemiBold.ttf', 18)
     })
 
     # gameplay

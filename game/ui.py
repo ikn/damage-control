@@ -14,7 +14,7 @@ from util import position_sfc, combine_drawn, blank_sfc
 
 class Widget (object):
     def __init__ (self, size):
-        self.size = size
+        self.size = tuple(size)
         self.pos = None
         self.dirty = True
 
@@ -35,11 +35,14 @@ Takes any number of (pos, widget) tuples.  Widgets mustn't overlap.
 """
 
     def __init__ (self, *widgets):
-        x0 = min(p[0] for p, w in widgets)
-        x1 = max(p[0] + w.size[0] for p, w in widgets)
-        y0 = min(p[1] for p, w in widgets)
-        y1 = max(p[1] + w.size[1] for p, w in widgets)
-        size = (x1 - x0, y1 - y0)
+        if widgets:
+            x0 = min(p[0] for p, w in widgets)
+            x1 = max(p[0] + w.size[0] for p, w in widgets)
+            y0 = min(p[1] for p, w in widgets)
+            y1 = max(p[1] + w.size[1] for p, w in widgets)
+            size = (x1 - x0, y1 - y0)
+        else:
+            size = (0, 0)
         Widget.__init__(self, size)
         self.widgets = widgets
 
@@ -64,23 +67,6 @@ Takes any number of (pos, widget) tuples.  Widgets mustn't overlap.
             rtn.append(this_rtn)
         return combine_drawn(*rtn)
 
-
-class Head (Widget):
-    def __init__ (self, size, text):
-        Widget.__init__(self, size)
-        data = conf.UI_HEAD
-        text = render_text('ui head', text, data['font colour'],
-                           width = size[0], just = 1)[0]
-        self.text = blank_sfc(size)
-        position_sfc(text, self.text)
-
-    def draw (self, screen, pos = (0, 0), draw_bg = True):
-        Widget.draw(self, screen, pos, draw_bg)
-        if self.dirty:
-            screen.blit(self.text, pos)
-            self.dirty = False
-            return True
-        return False
 
 class List (Container):
     """Widget containing a scrollable column of widgets.
@@ -121,7 +107,7 @@ bottom: index of bottom visible widget + 1.
         else:
             # start below last widget
             visible = self.widgets
-            g = conf.UI_LIST_GAP
+            g = conf.LIST_GAP
             if visible:
                 (x, y), last = visible[-1]
                 y += last.size[1] + g
@@ -210,12 +196,40 @@ bottom: index of bottom visible widget + 1.
         return combine_drawn(rtn, Container.draw(self, screen, pos, draw_bg))
 
 
-class ListItem (Widget):
+class Img (Widget):
+    def __init__ (self, sfc):
+        self.sfc = sfc
+        Widget.__init__(self, sfc.get_size())
+
+    def draw (self, screen, pos = (0, 0), draw_bg = True):
+        Widget.draw(self, screen, pos, draw_bg)
+        if self.dirty:
+            screen.blit(self.sfc, pos)
+            self.dirty = False
+            return True
+        return False
+
+
+class Text (Img):
+    def __init__ (self, size, text, font):
+        text = render_text(font, text, conf.TEXT_COLOUR, width = size[0],
+                           just = 1)[0]
+        size = list(size)
+        ts = text.get_size()
+        for i in (0, 1):
+            if size[i] is None:
+                size[i] = ts[i]
+        sfc = blank_sfc(size)
+        position_sfc(text, sfc)
+        Img.__init__(self, sfc)
+
+
+class ListItem (Img):
     def __init__ (self, width, text):
         # text is string or surface
-        data = conf.UI_LIST_ITEM
+        data = conf.LIST_ITEM
         if isinstance(text, basestring):
-            sfc = render_text('ui list item', text, data['font colour'],
+            sfc = render_text('normal', text, conf.TEXT_COLOUR,
                               width = width, bg = data['bg colour'],
                               pad = data['padding'])[0]
         else:
@@ -223,9 +237,7 @@ class ListItem (Widget):
             sfc = sfc.convert_alpha()
             sfc.fill(data['bg colour'])
             position_sfc(text, sfc)
-        size = (width, sfc.get_height())
-        self.sfc = sfc
-        Widget.__init__(self, size)
+        Img.__init__(self, sfc)
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
         Widget.draw(self, screen, pos, draw_bg)
@@ -256,9 +268,9 @@ cb, args, kwargs: cb(evt, last_up, inside, *args, **kwargs) is called on mouse
 """
 
     def __init__ (self, width, text, cb, *args, **kwargs):
-        data = conf.BUTTON
-        bw = data['border width']
-        bc = data['border colour']
+        b_data = conf.BUTTON_BORDER
+        bw = b_data['width']
+        bc = b_data['colour']
         ListItem.__init__(self, width - 2 * bw, text)
         w, h = self.size
         w += 2 * bw

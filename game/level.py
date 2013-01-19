@@ -4,7 +4,7 @@ from conf import conf
 from util import combine_drawn
 import ui
 from wmap import Map
-from action import mk_button
+from action import mk_button, Selected
 from ext import evthandler as eh
 
 
@@ -18,14 +18,17 @@ def _setup_widgets (bg, *ws):
 def mk_ui (bg):
     news_r = conf.NEWS_LIST_RECT
     actions_r = conf.ACTIONS_LIST_RECT
-    wmap = Map(conf.WMAP_RECT[2:])
+    sel = Selected(bg)
+    wmap = Map(conf.WMAP_RECT[2:], sel)
     news = ui.List(news_r[2:])
     c = ui.Container(
         (conf.WMAP_RECT[:2], wmap),
-        ((news_r[0], 0), ui.Head((news_r[2], conf.UI_HEAD_HEIGHT), 'NEWS')),
+        ((news_r[0], 0),
+         ui.Text((news_r[2], conf.HEAD_HEIGHT), 'NEWS', 'head')),
         (news_r[:2], news),
         ((actions_r[0], 0),
-         ui.Head((actions_r[2], conf.UI_HEAD_HEIGHT), 'ACTIONS')),
+         ui.Text((actions_r[2], conf.HEAD_HEIGHT), 'ACTIONS', 'head')),
+        (conf.SELECTED_RECT[:2], sel),
         (actions_r[:2], ui.List(actions_r[2:], *[
             mk_button(wmap, action) for action in conf.ACTIONS
         ]))
