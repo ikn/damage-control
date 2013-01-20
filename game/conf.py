@@ -137,9 +137,9 @@ class Conf (object):
     })
 
     # gameplay
-    INITIAL_INFLUENCE = 100
+    INITIAL_INFLUENCE = 0
     INFLUENCE_GROWTH_RATE = .1 # increase per frame
-    DAY_FRAMES = FPS['level']
+    DAY_FRAMES = 4 * FPS['level']
     # world map initialisation
     PERSON_NEAREST = 5 # must be > 0
     NUM_PEOPLE = 50
@@ -178,7 +178,7 @@ class Conf (object):
     ACTIONS = [
         {
             'desc': 'cut phone line',
-            'type': 'p',
+            'type': 'c',
             'cost': 10,
             'affects': ('phone', 'fax', 'telegraph'),
             'time': (5, 7, 10),
@@ -186,7 +186,7 @@ class Conf (object):
 'An engineer will be sent to fix reported telephone outages.  Job time ' \
 'estimate: %t.',
             ), 'news end': (
-'a',
+'end phone',
             )
         }, {
             'desc': 'broadcast jamming signal',
@@ -196,10 +196,10 @@ class Conf (object):
             'affects': ('telepathy', 'radio', 'pager'),
             'time': (4, 6, 7),
             'news start': (
-'Dispruptions to wireless services have been detected.  We expect to find ' \
-'the source in %r.',
+'Disruptions to wireless services have been detected in %a.  We expect to ' \
+'find the source in %r.',
             ), 'news end': (
-None,
+'end jamming',
             )
         }
     ]

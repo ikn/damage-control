@@ -73,36 +73,43 @@ current_method: the method currently being used to send a message (None if
             person = self.sending
         return self.people[self.people[0] is person]
 
-    def disable_method (self, method, action):
+    def disable_methods (self, action, *methods):
         """Disable a method.
 
-disable_method(method, action)
+disable_method(action, *methods)
 
-method: the method (identifier) to disable.
 action: the Action causing this.
+methods: the methods (identifiers) to disable.
 
 """
-        l = self.methods[method]['disabled']
-        was_disabled = bool(l)
-        l.append(action)
-        if self.sending and method == self.current_method and \
-           bool(l) != was_disabled:
-            # was using this method: switch to another
-            self.send()
+        method_data = self.methods
+        for method in methods:
+            if method in method_data:
+                l = method_data[method]['disabled']
+                was_disabled = bool(l)
+                l.append(action)
+                if self.sending and method == self.current_method and \
+                bool(l) != was_disabled:
+                    # was using this method: switch to another
+                    self.send()
 
-    def enable_method (self, method, action):
+    def enable_methods (self, action, *methods):
         """Enable a method.  (Like disable_method.)"""
-        method = self.methods[method]
-        l = method['disabled']
-        was_disabled = bool(l)
-        method['disabled'].append(action)
-        if self.sending and bool(l) != was_disabled:
-            dist = self.dist
-            dist_left = (1 - self.progress) * dist
-            t_left = dist_left / self.methods[self.current_method]['speed']
-            if dist / method['speed'] < t_left:
-                # switching to this method will be quicker
-                self.send()
+        method_data = self.methods
+        for method in methods:
+            if method in method_data:
+                method = method_data[method]
+                l = method['disabled']
+                was_disabled = bool(l)
+                method['disabled'].append(action)
+                if self.sending and bool(l) != was_disabled:
+                    dist = self.dist
+                    dist_left = (1 - self.progress) * dist
+                    t_left = dist_left / \
+                             method_data[self.current_method]['speed']
+                    if dist / method['speed'] < t_left:
+                        # switching to this method will be quicker
+                        self.send()
 
     def send (self, sender = None):
         """Send a message from the given person.
@@ -237,13 +244,13 @@ class Person (object):
         self._know.append(con.other(self))
         self.sending = False
 
-    def disable (self, method, action):
+    def disable_methods (self, action, *methods):
         for c in self.cons:
-            c.disable(method, action)
+            c.disable_methods(action, *methods)
 
-    def enable (self, method, action):
+    def enable_methods (self, action, *methods):
         for c in self.cons:
-            c.enable(method, action)
+            c.enable_methods(action, *methods)
 
     def update (self):
         if self.knows and self.sending is False:

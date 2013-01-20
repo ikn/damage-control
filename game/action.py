@@ -37,7 +37,7 @@ class Action (object):
     def start (self, target):
         self.target = target
         data = self.data
-        del self.data
+        methods = data['affects']
         self._news_end = data['news end']
         # generate news substitution text
         t = triangular(*data['time'])
@@ -52,15 +52,28 @@ class Action (object):
             t_pos = target.pos
         elif data['type'] == 'c':
             t_pos = target.centre
+        # and put action into effect
         else: # data['type'] == 'a'
             n_data['a'] = target[0]
+            for obj in target[1] + target[2]: # people and connections
+                obj.disable_methods(self, *methods)
         if data['type'] != 'a':
             n_data['a'] = self._wmap.area(t_pos)
-        # generate initial news and register with map
-        news = data['news start']
-        return (ir(t * conf.DAY_FRAMES), data['cost'], self._mk_news(news))
+            target.disable_methods(self, *methods)
+        # generate initial news
+        news = self._mk_news(data['news start'])
+        return (ir(t * conf.DAY_FRAMES), data['cost'], news)
 
     def end (self):
+        # undo action's effects
+        target = self.target
+        t_type = self.data['type']
+        methods = self.data['affects']
+        if t_type in 'pc':
+            target.enable_methods(self, *methods)
+        else: # area
+            for obj in target[1] + target[2]:
+                target.enable_methods(self, *methods)
         return self._mk_news(self._news_end)
 
 
@@ -122,7 +135,7 @@ action: if the player is selecting an area for an action, this is the Action
                 s += method[:2]
                 if method == current_method:
                     s += '+'
-                elif not data['allowed']:
+                elif data['disabled']:
                     s += '/'
             data = (
                 (('subhead', 'Selected: connection', width),),
