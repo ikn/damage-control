@@ -58,6 +58,7 @@ class Level (object):
         self.ui, self.wmap, self.news = mk_ui(self)
         # TODO: add initial text (as news)
         # reset variables
+        self.influence = conf.INITIAL_INFLUENCE
         self._clicked = {}
         self.dirty = True
         self.paused = False
@@ -87,7 +88,11 @@ class Level (object):
     def update (self):
         if self.paused:
             return
-        news = self.wmap.update()
+        # update influence
+        wmap = self.wmap
+        self.influence += conf.INFLUENCE_GROWTH_RATE * \
+                          (1 - float(wmap.n_know) / len(wmap.people))
+        news = wmap.update()
         if news:
             self.add_news(*news)
 

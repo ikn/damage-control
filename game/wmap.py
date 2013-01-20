@@ -161,6 +161,7 @@ class Person (object):
         self.cons = []
         self.knows = False
         self._know = []
+        self.allowed = True
         self.sending = False
         img = level.game.img
         self._imgs = (img('person.png'), img('person-knows.png'))
@@ -179,7 +180,6 @@ class Person (object):
     def recieve (self, con = None):
         """Recieve the message."""
         if not self.knows:
-            #print self, 'knows'
             if con is not None:
                 self._know.append(con.other(self))
             self.knows = True
@@ -203,7 +203,6 @@ class Person (object):
                 # try to send
                 success = c.send(self)
                 if success:
-                    #print self, '->', c.other(self)
                     self.sending = c
                     return
                 elif success is False:
@@ -229,13 +228,14 @@ class Person (object):
             self.send()
 
     def draw (self, screen, pos = (0, 0)):
-        screen.blit(self._imgs[self.knows],
+        screen.blit(self._imgs[self.knows], # + 2 * (1 - self.allowed)
                     sum_pos(pos, self.pos, self._offset))
 
 
 class Map (Widget):
     def __init__ (self, level, size, selected):
         Widget.__init__(self, size)
+        self.level = level
         self._selected = selected
         self.selecting = None
         self._actions = []
@@ -411,13 +411,17 @@ class Map (Widget):
     def start_action (self):
         action = self.selecting
         self.selecting = False
-        time, news = action.start(self._selected.showing)
+        time, cost, news = action.start(self._selected.showing)
         self._actions.append([action, time])
+        self.level.influence -= cost
         if news is not None:
             self._news.append(news)
 
     def ask_select_target (self, action):
         """Ask the player to select a target for an action."""
+        if action.data['cost'] > self.level.influence:
+            # can't afford
+            return
         self.selecting = action
         # Selected.showing_type is '', 'c', 'p', 'a', ' action', 'c action',
         # 'p action' or 'a action'

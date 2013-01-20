@@ -58,7 +58,7 @@ class Action (object):
             n_data['a'] = self._wmap.area(t_pos)
         # generate initial news and register with map
         news = data['news start']
-        return (ir(t * conf.DAY_FRAMES), self._mk_news(news))
+        return (ir(t * conf.DAY_FRAMES), data['cost'], self._mk_news(news))
 
     def end (self):
         return self._mk_news(self._news_end)
