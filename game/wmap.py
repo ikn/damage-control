@@ -4,7 +4,7 @@ from random import randint, choice, shuffle
 import pygame as pg
 
 from conf import conf
-from util import ir, weighted_rand
+from util import ir, sum_pos, weighted_rand
 from ui import Widget
 
 
@@ -51,7 +51,7 @@ current_method: the method currently being used to send a message (None if
 
 """
 
-    def __init__ (self, people, methods):
+    def __init__ (self, level, people, methods):
         self.people = people
         self.dist = dist = people[0].dist(people[1]) - \
                            2 * conf.PERSON_ICON_RADIUS
@@ -63,6 +63,9 @@ current_method: the method currently being used to send a message (None if
                                    for s, m in methods)
         self.sending = False
         self.sent = False
+        self._pos_img = level.game.img('connection-progress.png')
+        w, h = self._pos_img.get_size()
+        self._offset = (-w / 2, -h / 2)
 
     def other (self, person = None):
         """Get the person on the other end."""
@@ -133,10 +136,7 @@ Returns whether any methods are available, or None if already sent.
                 self.cancel()
 
     def draw_base (self, screen, pos = (0, 0)):
-        if self.sent:
-            colour = (255, 100, 100)
-        else:
-            colour = (100, 255, 100)
+        colour = conf.LINE_COLOUR_BAD if self.sent else conf.LINE_COLOUR_GOOD
         p1 = self.people[0].pos
         p2 = self.people[1].pos
         pg.draw.aaline(screen, colour, (pos[0] + p1[0], pos[1] + p1[1]),
@@ -147,13 +147,15 @@ Returns whether any methods are available, or None if already sent.
             x0, y0 = start = self.sending.pos
             x1, y1 = end = self.other().pos
             r = self.progress
-            pos = (pos[0] + ir(x0 + r * (x1 - x0)),
-                   pos[1] + ir(y0 + r * (y1 - y0)))
-            pg.draw.circle(screen, (255, 100, 100), pos, 3)
+            pos = sum_pos(pos,
+                          (ir(x0 + r * (x1 - x0)), ir(y0 + r * (y1 - y0))),
+                          self._offset)
+            screen.blit(self._pos_img, pos)
 
 
 class Person (object):
-    def __init__ (self, wmap, pos):
+    def __init__ (self, level, wmap, pos):
+        self.level = level
         self.wmap = wmap
         self.name = 'Some guy'
         self.pos = pos
@@ -161,6 +163,10 @@ class Person (object):
         self.knows = False
         self._know = []
         self.sending = False
+        img = level.game.img
+        self._imgs = (img('person.png'), img('person-knows.png'))
+        w, h = self._imgs[0].get_size()
+        self._offset = (-w / 2, -h / 2)
 
     def __str__ (self):
         return str(self.wmap.people.index(self))
@@ -224,16 +230,12 @@ class Person (object):
             self.send()
 
     def draw (self, screen, pos = (0, 0)):
-        if self.knows:
-            c = (255, 100, 100)
-        else:
-            c = (100, 255, 100)
-        pg.draw.circle(screen, c, (pos[0] + self.pos[0], pos[1] + self.pos[1]),
-                       conf.PERSON_ICON_RADIUS)
+        screen.blit(self._imgs[self.knows],
+                    sum_pos(pos, self.pos, self._offset))
 
 
 class Map (Widget):
-    def __init__ (self, size, selected):
+    def __init__ (self, level, size, selected):
         Widget.__init__(self, size)
         self._selected = selected
         self.selecting = False
@@ -260,7 +262,7 @@ class Map (Widget):
                         break
                     this_dists[p] = dist
                 else:
-                    new_p = Person(self, (x, y))
+                    new_p = Person(level, self, (x, y))
                     for p, dist in this_dists.iteritems():
                         dists[frozenset((new_p, p))] = dist
                     ps.append(new_p)
@@ -285,7 +287,7 @@ class Map (Widget):
             for i in xrange(ir(max(1, n_methods()))):
                 this_methods.add(weighted_rand(methods))
             # create connection and add to stores
-            c = Connection((p1, p2), this_methods)
+            c = Connection(level, (p1, p2), this_methods)
             self.cons.append(c)
             p1.cons.append(c)
             p2.cons.append(c)

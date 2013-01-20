@@ -112,8 +112,9 @@ class Conf (object):
     WMAP_RECT = (NEWS_LIST_RECT[2], 0, RES[0] - NEWS_LIST_RECT[2] - actions_w,
                  RES[1])
     # world map
-    PERSON_ICON_RADIUS = 5
     WMAP_BORDER = 15 # contains no people
+    LINE_COLOUR_GOOD = (17, 209, 93),
+    LINE_COLOUR_BAD = (196, 94, 99)
     # ui
     HEAD_HEIGHT = 32
     LIST_GAP = 2
@@ -125,6 +126,7 @@ class Conf (object):
         'width': 3,
         'colour': ((255, 255, 255, 90), (150, 150, 150, 46)) # lt, rb
     }
+    PERSON_ICON_RADIUS = 5
 
     # text rendering
     TEXT_COLOUR = (255, 255, 255)

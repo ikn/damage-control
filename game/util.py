@@ -31,6 +31,11 @@ def ir (x):
     return (y + (x - y >= .5)) if x > 0 else (y - (y - x >= .5))
 
 
+def sum_pos (*pos):
+    """Sum all give (x, y) positions component-wise."""
+    return (sum(x for x, y in pos), sum(y for x, y in pos))
+
+
 # random
 
 

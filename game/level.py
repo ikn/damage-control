@@ -15,11 +15,12 @@ def _setup_widgets (bg, *ws):
             _setup_widgets(bg, *(child for pos, child in w.widgets))
 
 
-def mk_ui (bg):
+def mk_ui (level):
+    bg = level.game.img('bg.png')
     news_r = conf.NEWS_LIST_RECT
     actions_r = conf.ACTIONS_LIST_RECT
     sel = Selected(bg)
-    wmap = Map(conf.WMAP_RECT[2:], sel)
+    wmap = Map(level, conf.WMAP_RECT[2:], sel)
     sel.wmap = wmap
     news = ui.List(news_r[2:])
     c = ui.Container(
@@ -54,7 +55,7 @@ class Level (object):
         self.init()
 
     def init (self):
-        self.ui, self.wmap, self.news = mk_ui(self.game.img('bg.png'))
+        self.ui, self.wmap, self.news = mk_ui(self)
         # TODO: add initial text (as news)
         # reset variables
         self._clicked = {}
