@@ -126,27 +126,28 @@ class Conf (object):
         'width': 3,
         'colour': ((255, 255, 255, 90), (150, 150, 150, 46)) # lt, rb
     }
-    PERSON_ICON_RADIUS = 5
 
     # text rendering
     TEXT_COLOUR = (255, 255, 255)
     # per-backend, each a {key: value} dict to update Game.fonts with
     REQUIRED_FONTS = dd({}, level = {
         'normal': ('Jura-Regular.ttf', 12),
-        'head': ('Jura-DemiBold.ttf', 25),
-        'subhead': ('Jura-DemiBold.ttf', 18)
+        'head': ('Jura-DemiBold.ttf', 27),
+        'subhead': ('Jura-DemiBold.ttf', 16)
     })
 
     # gameplay
     DAY_FRAMES = FPS['level']
     # world map initialisation
-    PERSON_NEAREST = 20
+    PERSON_NEAREST = 5 # must be > 0
     NUM_PEOPLE = 50
     CONS_PER_PERSON = lambda: gammavariate(5, .5)
     MAX_CONS_PER_PERSON = 6
     SHORT_CONNECTION_BIAS = 4
     METHODS_PER_CON = lambda: gammavariate(3, .5)
     # world map: running
+    PERSON_RADIUS = 12 # must be <= PERSON_NEAREST
+    CON_RADIUS_SQ = 30 ** 2
     # if dist, speed is in pixels per day
     # else time is in days
     METHODS = {

@@ -19,7 +19,7 @@ def mk_button (wmap, action):
 class Action (object):
     def __init__ (self, wmap, data):
         self._wmap = wmap
-        self._data = data
+        self.data = data
         self.type = data['type']
         wmap.ask_select_target(self)
 
@@ -36,8 +36,8 @@ class Action (object):
 
     def start (self, target):
         self.target = target
-        data = self._data
-        del self._data
+        data = self.data
+        del self.data
         self._news_end = data['news end']
         # generate news substitution text
         t = triangular(*data['time'])
@@ -53,8 +53,9 @@ class Action (object):
         elif data['type'] == 'c':
             t_pos = target.centre
         else: # data['type'] == 'a'
-            t_pos = target[0]
-        n_data['a'] = self._wmap.area(t_pos)
+            n_data['a'] = target[0]
+        if data['type'] != 'a':
+            n_data['a'] = self._wmap.area(t_pos)
         # generate initial news and register with map
         news = data['news start']
         return (ir(t * conf.DAY_FRAMES), self._mk_news(news))
@@ -79,7 +80,18 @@ class Selected (ui.Container):
             self.wmap.start_action()
             self.wmap.cancel_selecting()
 
-    def show (self, obj, ask = False):
+    def show (self, obj, action = None):
+        """Show something.
+
+show(obj, action = None)
+
+obj: the thing to show: None for nothing, a Person, a Connection, or
+     name for an area.  If action is given, area is (name, people, cons), where
+     people and cons are those inside the area.
+action: if the player is selecting an area for an action, this is the Action
+        instance.
+
+"""
         # store what we're showing
         if obj is None:
             showing_type = ''
@@ -89,8 +101,8 @@ class Selected (ui.Container):
             showing_type = 'p'
         else: # area
             showing_type = 'a'
-        if ask:
-            showing_type += ' ask'
+        if action:
+            showing_type += ' action'
         if hasattr(self, 'showing') and obj == self.showing and \
            showing_type == self.showing_type:
             return
@@ -100,7 +112,7 @@ class Selected (ui.Container):
         # just a row if there's only one row.  Widgets are vertically centred
         # within rows.  Representations are (font, text, width), a surface, a
         # Widget, or an int for padding.  A row can also be an int for padding.
-        width = conf.ACTIONS_LIST_RECT[2]
+        width = self.size[0]
         if obj is None:
             data = (('subhead', 'Nothing selected', width),)
         elif showing_type[0] == 'c':
@@ -115,7 +127,7 @@ class Selected (ui.Container):
             data = (
                 (('subhead', 'Selected: connection', width),),
                 (('normal', s, None),),
-                (('normal', '{0} km'.format(ir(obj.dist)), None),)
+                (('normal', '{0} km long'.format(ir(obj.dist)), None),)
             )
         elif showing_type[0] == 'p':
             data = (
@@ -129,21 +141,24 @@ class Selected (ui.Container):
                 #obj.img
             #)
         else: # area
-            pos, name, n_people, n_cons = obj
-            body_text = 'contains {0} people, {1} connections'
-            data = (
-                (('subhead', 'Selected: {0}'.format(name), width),),
-                (('normal', body_text.format(n_people, n_cons), width),)
-            )
+            if action:
+                name, people, cons = obj
+            else:
+                name = obj
+            data = ((('subhead', 'Selected: {0}'.format(name), width),),)
+            if action:
+                body_text = 'contains {0} people, {1} connections'
+                data += ((('normal', body_text.format(len(people),
+                           len(cons)),
+                          width),),)
         if isinstance(data[0], pg.Surface) or \
            isinstance(data[0][0], basestring):
             data = (data,)
-        if ask:
+        if action:
             data += (5, (ui.Button(width, 'Cancel', self._cancel),),)
             if obj is None:
                 pass # TODO: show 'please select a(n) person/connection/area'
             else:
-                # TODO: callback (self = wmap):
                 data += (5, (ui.Button(width, 'OK', self._start),),)
         # generate widgets
         ws = []

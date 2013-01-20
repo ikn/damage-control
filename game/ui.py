@@ -214,11 +214,8 @@ class Text (Img):
     def __init__ (self, size, text, font):
         text = render_text(font, text, conf.TEXT_COLOUR, width = size[0],
                            just = 1)[0]
-        size = list(size)
         ts = text.get_size()
-        for i in (0, 1):
-            if size[i] is None:
-                size[i] = ts[i]
+        size = [ts[i] if size[i] is None else size[i] for i in (0, 1)]
         sfc = blank_sfc(size)
         position_sfc(text, sfc)
         Img.__init__(self, sfc)

@@ -53,8 +53,7 @@ current_method: the method currently being used to send a message (None if
 
     def __init__ (self, level, people, methods):
         self.people = people
-        self.dist = dist = people[0].dist(people[1]) - \
-                           2 * conf.PERSON_ICON_RADIUS
+        self.dist = dist = people[0].dist(people[1]) - 2 * conf.PERSON_RADIUS
         x1, y1 = people[0].pos
         x2, y2 = people[1].pos
         self.centre = (ir(.5 * (x1 + x2)), ir(5 * (y1 + y2)))
@@ -238,9 +237,10 @@ class Map (Widget):
     def __init__ (self, level, size, selected):
         Widget.__init__(self, size)
         self._selected = selected
-        self.selecting = False
+        self.selecting = None
         self._actions = []
         self._news = []
+        self.areas = {'<area>': (200, 200)} # TODO: populate
         # generate people
         w, h = self.size
         self.people = ps = []
@@ -250,7 +250,7 @@ class Map (Widget):
         x0 = y0 = b
         x1 = w - b
         y1 = h - b
-        nearest = 2 * conf.PERSON_ICON_RADIUS + conf.PERSON_NEAREST
+        nearest = 2 * conf.PERSON_RADIUS + conf.PERSON_NEAREST
         for i in range(conf.NUM_PEOPLE):
             while True:
                 x, y = randint(x0, x1), randint(y0, y1)
@@ -275,8 +275,7 @@ class Map (Widget):
                     if key not in dists:
                         x1, y1 = p1.pos
                         x2, y2 = p2.pos
-                        dists[key] = ((x2 - x1) * (x2 - x1) + \
-                                      (y2 - y1) * (y2 - y1)) ** .5
+                        dists[key] = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** .5
 
         def add_con (p1, p2):
             # need to add dist to self.dists before creating Connection
@@ -343,19 +342,46 @@ class Map (Widget):
 
     def obj_at (self, pos, types = 'cap'):
         """Get object at a position, as taken by Selected.show."""
+        px, py = pos
         if 'p' in types:
-            px, py = pos
-            r = conf.PERSON_ICON_RADIUS
+            r = conf.PERSON_RADIUS
             for p in self.people:
                 x, y = p.pos
-                if ((px - x) * (px - x) + (py - y) * (py - y)) ** .5 <= r:
+                if ((px - x) ** 2 + (py - y) ** 2) ** .5 <= r:
                     return p
         if 'c' in types:
+            r_sq = conf.CON_RADIUS_SQ
+            near = []
             for c in self.cons:
-                pass # TODO: only if within some radius
+                p1, p2 = c.people
+                x1, y1 = p1.pos
+                x2, y2 = p2.pos
+
+                len_sq = (x1 - x2) ** 2 + (y1 - y2) ** 2
+                dx, dy = (x2 - x1, y2 - y1)
+                t = float((px - x1) * dx + (py - y1) * dy) / len_sq
+                if t < 0:
+                    # use first person
+                    dist_sq = (px - x1) ** 2 + (py - y1) ** 2
+                elif t > 1:
+                    # use second person
+                    dist_sq = (px - x2) ** 2 + (py - y2) ** 2
+                else:
+                    # use line
+                    dist_sq = (x1 + dx * t - px) ** 2 + (y1 + dy * t - py) ** 2
+                # must be near-ish
+                if dist_sq <= r_sq:
+                    near.append((dist_sq, c))
+            if near:
+                # use nearest
+                return min(near)[1]
         if 'a' in types:
-            pass # TODO: return (pos, self.area(pos), n_people, n_cons)
+            return self.area(pos)
         return None
+
+    def objs_in (self, pos, radius):
+        """Get the people and connections in a circle on the map."""
+        return ([], []) # TODO
 
     def area (self, pos):
         """Get area nearest the given position."""
@@ -367,11 +393,20 @@ class Map (Widget):
                 types = self.selecting.type
             else:
                 types = 'cap'
-            self._selected.show(self.obj_at(pos, types), bool(self.selecting))
+            obj = self.obj_at(pos, types)
+            if types == 'a':
+                # selecting an area for an action: add people and connections
+                # in the area as wanted by Selected
+                ps, cs = self.objs_in(evt.pos, self.selecting.data['radius'])
+                obj = (obj, ps, cs)
+            self._selected.show(obj, self.selecting)
 
     def cancel_selecting (self):
-        self.selecting = False
-        self._selected.show(self._selected.showing)
+        self.selecting = None
+        obj = self._selected.showing
+        if self._selected.showing_type == 'a action':
+            obj = obj[0]
+        self._selected.show(obj)
 
     def start_action (self):
         action = self.selecting
@@ -384,13 +419,14 @@ class Map (Widget):
     def ask_select_target (self, action):
         """Ask the player to select a target for an action."""
         self.selecting = action
-        # Selected.showing_type is '', 'c', 'p', 'a', ' ask', 'c ask', 'p ask'
-        # or 'a ask'
+        # Selected.showing_type is '', 'c', 'p', 'a', ' action', 'c action',
+        # 'p action' or 'a action'
         sel = self._selected
-        if sel.showing is None or sel.showing_type[0] != action.type:
-            sel.show(None, True)
+        if sel.showing is None or sel.showing_type == 'a' or \
+           sel.showing_type[0] != action.type:
+            sel.show(None, action)
         else:
-            sel.show(sel.showing, True)
+            sel.show(sel.showing, action)
 
     def update (self):
         for a in list(self._actions):
