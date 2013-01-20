@@ -40,8 +40,9 @@ draw
 people: as given.
 dist: length of the connection line, in pixels.
 centre: (x, y) position of the line's centre (ints).
-methods: {method: {'allowed': allowed, 'speed': speed}} OrderedDict for each
-         available method, fastest first.
+methods: {method: {'disabled': disabled, 'speed': speed}} OrderedDict for each
+         available method, fastest first.  disabled is actually a list, but
+         treat it as a boolean.
 sending: the target person if currently sending a message, else None.
 sent: whether the message has finished sending.
     [if sending:]
@@ -58,7 +59,7 @@ current_method: the method currently being used to send a message (None if
         x2, y2 = people[1].pos
         self.centre = (ir(.5 * (x1 + x2)), ir(5 * (y1 + y2)))
         methods = reversed(sorted((method_speed(m, dist), m) for m in methods))
-        self.methods = OrderedDict((m, {'allowed': True, 'speed': s})
+        self.methods = OrderedDict((m, {'disabled': [], 'speed': s})
                                    for s, m in methods)
         self.sending = False
         self.sent = False
@@ -72,16 +73,30 @@ current_method: the method currently being used to send a message (None if
             person = self.sending
         return self.people[self.people[0] is person]
 
-    def disable_method (self, method):
-        self.methods[method]['allowed'] = False
-        if self.sending and method == self.current_method:
+    def disable_method (self, method, action):
+        """Disable a method.
+
+disable_method(method, action)
+
+method: the method (identifier) to disable.
+action: the Action causing this.
+
+"""
+        l = self.methods[method]['disabled']
+        was_disabled = bool(l)
+        l.append(action)
+        if self.sending and method == self.current_method and \
+           bool(l) != was_disabled:
             # was using this method: switch to another
             self.send()
 
-    def enable_method (self, method):
+    def enable_method (self, method, action):
+        """Enable a method.  (Like disable_method.)"""
         method = self.methods[method]
-        method['allowed'] = True
-        if self.sending:
+        l = method['disabled']
+        was_disabled = bool(l)
+        method['disabled'].append(action)
+        if self.sending and bool(l) != was_disabled:
             dist = self.dist
             dist_left = (1 - self.progress) * dist
             t_left = dist_left / self.methods[self.current_method]['speed']
@@ -108,7 +123,7 @@ Returns whether any methods are available, or None if already sent.
             self.progress = 0
             # use fastest available method
             for m, data in self.methods.iteritems():
-                if data['allowed']:
+                if not data['disabled']:
                     self.current_method = m
                     return True
             # no available methods
@@ -161,7 +176,6 @@ class Person (object):
         self.cons = []
         self.knows = False
         self._know = []
-        self.allowed = True
         self.sending = False
         img = level.game.img
         self._imgs = (img('person.png'), img('person-knows.png'))
@@ -223,12 +237,20 @@ class Person (object):
         self._know.append(con.other(self))
         self.sending = False
 
+    def disable (self, method, action):
+        for c in self.cons:
+            c.disable(method, action)
+
+    def enable (self, method, action):
+        for c in self.cons:
+            c.enable(method, action)
+
     def update (self):
         if self.knows and self.sending is False:
             self.send()
 
     def draw (self, screen, pos = (0, 0)):
-        screen.blit(self._imgs[self.knows], # + 2 * (1 - self.allowed)
+        screen.blit(self._imgs[self.knows],
                     sum_pos(pos, self.pos, self._offset))
 
 
