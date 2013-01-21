@@ -104,7 +104,7 @@ class Conf (object):
     sidebar_t = 40
     NEWS_LIST_RECT = (0, sidebar_t, 249, RES[1] - sidebar_t)
     actions_w = 149
-    sel_h = 200
+    sel_h = 150
     SELECTED_RECT = (RES[0] - actions_w + 2, RES[1] - sel_h, actions_w - 4,
                      sel_h - 2)
     ACTIONS_LIST_RECT = (RES[0] - actions_w, sidebar_t, actions_w,

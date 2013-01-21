@@ -85,13 +85,16 @@ class Level (object):
         for item in items:
             self.news.insert(0, ui.ListItem(w, item))
 
+    def spend (self, cost):
+        self.influence -= cost
+
     def update (self):
         if self.paused:
             return
         # update influence
         wmap = self.wmap
-        self.influence += conf.INFLUENCE_GROWTH_RATE * \
-                          (1 - float(wmap.n_know) / len(wmap.people))
+        self.spend(-conf.INFLUENCE_GROWTH_RATE * \
+                   (1 - float(wmap.n_know) / len(wmap.people)))
         news = wmap.update()
         if news:
             self.add_news(*news)

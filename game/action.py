@@ -13,7 +13,8 @@ def mk_button (wmap, action):
         if last_up and inside:
             Action(wmap, action)
 
-    return ui.Button(conf.ACTIONS_LIST_RECT[2], action['desc'], cb)
+    desc = '[{0}] {1}'.format(action['cost'], action['desc'])
+    return ui.Button(conf.ACTIONS_LIST_RECT[2], desc, cb)
 
 
 class Action (object):
@@ -170,7 +171,7 @@ action: if the player is selecting an area for an action, this is the Action
         if action:
             data += (5, (ui.Button(width, 'Cancel', self._cancel),),)
             if obj is None:
-                pass # TODO: show 'please select a(n) person/connection/area'
+                pass # TODO: show 'select a(n) person/connection/area for the action '<action>''
             else:
                 data += (5, (ui.Button(width, 'OK', self._start),),)
         # generate widgets

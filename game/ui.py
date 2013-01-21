@@ -93,6 +93,14 @@ bottom: index of bottom visible widget + 1.
         self._widgets_after = []
         self.top = 0
         self.bottom = 0
+        # add scroll buttons
+        up = Button(size[0], '^', self._scroll_by, -1)
+        down = Button(size[0], 'v', self._scroll_by, 1)
+        self.widgets += [((0, 0), up), ((0, size[1] - down.size[1]), down)]
+        g = conf.LIST_GAP
+        self._inner_top = up.size[1] + g
+        self._inner_bottom = size[1] - down.size[1] - g
+        # add given widgets
         self.append(*widgets)
         start = len(self._widgets_before)
 
@@ -108,22 +116,22 @@ bottom: index of bottom visible widget + 1.
             # start below last widget
             visible = self.widgets
             g = conf.LIST_GAP
-            if visible:
+            if len(visible) > 2:
                 (x, y), last = visible[-1]
                 y += last.size[1] + g
             else:
-                y = 0
-            h = self.size[1]
+                y = self._inner_top
+            bottom = self._inner_bottom
             for i, w in enumerate(ws):
                 wh = w.size[1]
-                if y + wh > h:
+                if y + wh > bottom:
                     # doesn't fit
-                    after.extend(ws[i + 1:])
+                    after.extend(ws[i:])
                     break
-                visible.append([(0, y), w])
+                visible.append(((0, y), w))
                 y += wh + g
             self.dirty = True
-            self.bottom = self.top + len(visible)
+            self.bottom = self.top + len(visible) - 2
 
     def insert (self, i, widget):
         if i < self.top:
@@ -135,8 +143,9 @@ bottom: index of bottom visible widget + 1.
         else:
             # will (want to) be visible: need to reallocate positions
             ws = self.widgets
-            readd = [widget] + [w for p, w in ws[i - self.top:]]
-            self.widgets = ws[:i - self.top]
+            i = i - self.top + 2
+            readd = [widget] + [w for p, w in ws[i:]]
+            self.widgets = ws[:i]
             readd += self._widgets_after
             self._widgets_after = []
             self.append(*readd)
@@ -145,15 +154,21 @@ bottom: index of bottom visible widget + 1.
     def pop (self, i):
         if i < self.top:
             self._widgets_before.pop(i)
+            self.top -= 1
+            self.bottom -= 1
         elif i >= self.bottom:
             self._widgets_after.pop(i - self.bottom)
         else:
             ws = self.widgets
-            i -= self.top
+            i = i - self.top + 2
             ws.pop(i)
             self.widgets = ws[:i]
             self.append(*(w for p, w in ws[i:]))
             self.dirty = True
+
+    def _scroll_by (self, evt, last_up, inside, n):
+        if last_up and inside:
+            self.scroll_by(n)
 
     def scroll_by (self, n):
         if n == 0:
@@ -163,22 +178,23 @@ bottom: index of bottom visible widget + 1.
             if not before:
                 # nothing to show
                 return
-            readd = before[n:] + [w for p, w in self.widgets] + \
+            readd = before[n:] + [w for p, w in self.widgets[2:]] + \
                     self._widgets_after
             self._widgets_before = before[:n]
-            self.widgets = []
+            self.widgets = self.widgets[:2]
             self._widgets_after = []
             self.append(*readd)
         else: # n > 0
             if not self._widgets_after:
                 # nothing to show
                 return
-            ws = [w for p, w in self.widgets]
+            ws = [w for p, w in self.widgets[2:]]
             self._widgets_before.extend(ws[:n])
-            self.widgets = []
+            self.widgets = self.widgets[:2]
             readd = ws[n:] + self._widgets_after
             self._widgets_after = []
             self.append(*readd)
+        self.top = len(self._widgets_before)
         self.dirty = True
 
     def scroll_to (self, n):

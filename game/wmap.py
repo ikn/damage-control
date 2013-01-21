@@ -442,7 +442,7 @@ class Map (Widget):
         self.selecting = False
         time, cost, news = action.start(self._selected.showing)
         self._actions.append([action, time])
-        self.level.influence -= cost
+        self.level.spend(cost)
         if news is not None:
             self._news.append(news)
 
