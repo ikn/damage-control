@@ -129,7 +129,7 @@ action: if the player is selecting an area for an action, this is the Action
         data = []
         if obj is None:
             head = 'Nothing selected'
-        elif showing_type[0] == 'c':
+        elif showing_type == 'c':
             # TODO: method icons
             current_method = obj.current_method if obj.sending else None
             s = ''
@@ -146,16 +146,8 @@ action: if the player is selecting an area for an action, this is the Action
                 5,
                 (('normal', '{0} km long'.format(ir(obj.dist)), None),)
             ]
-        elif showing_type[0] == 'p':
+        elif showing_type == 'p':
             head = 'Selected: {0}'.format(obj.name)
-            # TODO: icon:
-            #ic_w = obj.img.get_width()
-            #data = (
-                #ic_w + 5,
-                #('subhead', 'Selected: connection', width - ic_w - 10),
-                #5,
-                #obj.img
-            #)
         else: # area
             if action:
                 name, people, cons = obj
@@ -183,6 +175,14 @@ action: if the player is selecting an area for an action, this is the Action
             data = [5, (('normal', text, width),)] + data
         # add heading
         data = [5, (('subhead', head, width),)] + data
+        # person icon
+        if showing_type == 'p':
+            img = obj.img()
+            img_w = img.get_width()
+            data[1] = (
+                4, img_w + 4, ('subhead', head, width - 2 * img_w - 16), 4,
+                img, 4
+            )
         if action:
             # add buttons
             data.append(10)

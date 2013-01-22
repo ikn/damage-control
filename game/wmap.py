@@ -198,6 +198,9 @@ class Person (object):
         """Get the distance to another person."""
         return self.wmap.dists[frozenset((self, other))]
 
+    def img (self):
+        return self._imgs[self.knows]
+
     def recieve (self, con = None):
         """Recieve the message."""
         if not self.knows:
@@ -257,8 +260,7 @@ class Person (object):
             self.send()
 
     def draw (self, screen, pos = (0, 0)):
-        screen.blit(self._imgs[self.knows],
-                    sum_pos(pos, self.pos, self._offset))
+        screen.blit(self.img(), sum_pos(pos, self.pos, self._offset))
 
 
 class Map (Widget):
