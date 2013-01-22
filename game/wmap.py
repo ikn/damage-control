@@ -1,5 +1,6 @@
+from math import ceil
 from collections import OrderedDict
-from random import randint, choice, shuffle
+from random import randint, choice, shuffle, sample
 
 import pygame as pg
 
@@ -271,9 +272,26 @@ class Map (Widget):
         self.selecting = None
         self._actions = []
         self._news = []
-        self.areas = {'<area>': (200, 200)} # TODO: populate
-        # generate people
+        self.areas = areas = {}
         w, h = self.size
+        # generate areas
+        names = sample(conf.AREAS, conf.NUM_AREAS)
+        n_rows = int(ceil(len(names) ** .5))
+        n_per_row = float(len(names)) / n_rows
+        done_f = done = 0
+        dy = ir(h / float(n_rows))
+        y = dy / 2
+        for j in xrange(n_rows):
+            done_f += n_per_row
+            n_this_row = int(done_f) - done
+            dx = ir(w / float(n_this_row))
+            x = dx / 2
+            for i in xrange(n_this_row):
+                areas[names[done + i]] = (x, y)
+                x += dx
+            done += n_this_row
+            y += dy
+        # generate people
         self.people = ps = []
         dists = {}
         self.dists = used_dists = {}
@@ -442,7 +460,11 @@ class Map (Widget):
 
     def area (self, pos):
         """Get area nearest the given position."""
-        return '<area>' # TODO
+        x, y = pos
+        dists = []
+        for name, (ax, ay) in self.areas.iteritems():
+            dists.append(((ax - x) ** 2 + (ay - y) ** 2, name))
+        return min(dists)[1]
 
     def click (self, pos, evt):
         if evt.button in conf.CLICK_BTNS:

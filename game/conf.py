@@ -153,6 +153,8 @@ class Conf (object):
     # world map: running
     PERSON_RADIUS = 12 # must be <= PERSON_NEAREST
     CON_RADIUS_SQ = 30 ** 2
+    AREAS = ['Area 11']
+    NUM_AREAS = min(len(AREAS), 9)
     # if dist, speed is in pixels per day
     # else time is in days
     METHODS = {
