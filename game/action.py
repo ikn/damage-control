@@ -74,7 +74,7 @@ class Action (object):
             target.enable_methods(self, *methods)
         else: # area
             for obj in target[1] + target[2]:
-                target.enable_methods(self, *methods)
+                obj.enable_methods(self, *methods)
         return self._mk_news(self._news_end)
 
 

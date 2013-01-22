@@ -387,7 +387,6 @@ class Map (Widget):
                 p1, p2 = c.people
                 x1, y1 = p1.pos
                 x2, y2 = p2.pos
-
                 len_sq = (x1 - x2) ** 2 + (y1 - y2) ** 2
                 dx, dy = (x2 - x1, y2 - y1)
                 t = float((px - x1) * dx + (py - y1) * dy) / len_sq
@@ -412,7 +411,34 @@ class Map (Widget):
 
     def objs_in (self, pos, radius):
         """Get the people and connections in a circle on the map."""
-        return ([], []) # TODO
+        x, y = pos
+        r_sq = radius ** 2
+        ps = []
+        for p in self.people:
+            px, py = p.pos
+            #print (px, py), (x - px) ** 2 + (y - py) ** 2 <= r_sq
+            if (x - px) ** 2 + (y - py) ** 2 <= r_sq:
+                ps.append(p)
+        cs = []
+        for c in self.cons:
+            p1, p2 = c.people
+            x1, y1 = p1.pos
+            x2, y2 = p2.pos
+            dx, dy = (x2 - x1, y2 - y1)
+            l = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** .5
+            dxu, dyu = (dx / l, dy / l)
+            # get nearest point on line to circle centre
+            to_nearest = (x - x1) * dxu + (y - y1) * dyu
+            if to_nearest <= 0:
+                nx, ny = (x1, y1)
+            elif to_nearest >= l:
+                nx, ny = (x2, y2)
+            else:
+                nx, ny = (to_nearest * dxu + x1, to_nearest * dyu + y1)
+            # check distance to centre
+            if (x - nx) ** 2 + (y - ny) ** 2 <= r_sq:
+                cs.append(c)
+        return (ps, cs)
 
     def area (self, pos):
         """Get area nearest the given position."""
@@ -428,7 +454,7 @@ class Map (Widget):
             if types == 'a':
                 # selecting an area for an action: add people and connections
                 # in the area as wanted by Selected
-                ps, cs = self.objs_in(evt.pos, self.selecting.data['radius'])
+                ps, cs = self.objs_in(pos, self.selecting.data['radius'])
                 obj = (obj, ps, cs)
             self.selected.show(obj, self.selecting)
 
