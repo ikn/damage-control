@@ -433,7 +433,7 @@ class Map (Widget):
     def cancel_selecting (self):
         self.selecting = None
         obj = self._selected.showing
-        if self._selected.showing_type == 'a action':
+        if self._selected.showing_type == 'a':
             obj = obj[0]
         self._selected.show(obj)
 
@@ -452,11 +452,10 @@ class Map (Widget):
             # can't afford
             return
         self.selecting = action
-        # Selected.showing_type is '', 'c', 'p', 'a', ' action', 'c action',
-        # 'p action' or 'a action'
+        # Selected.showing_type is '', 'c', 'p' or 'a'
         sel = self._selected
         if sel.showing is None or sel.showing_type == 'a' or \
-           sel.showing_type[0] != action.type:
+           sel.showing_type != action.type:
             sel.show(None, action)
         else:
             sel.show(sel.showing, action)

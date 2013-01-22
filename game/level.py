@@ -77,8 +77,8 @@ class Level (object):
     def _cancel (self, *args):
         if self.wmap.selecting:
             self.wmap.cancel_selecting()
-        else:
-            self.game.quit_backend()
+        #else:
+            #self.pause()
 
     def add_news (self, *items):
         w = conf.NEWS_LIST_RECT[2]

@@ -213,8 +213,12 @@ bottom: index of bottom visible widget + 1.
 
 
 class Img (Widget):
-    def __init__ (self, sfc):
-        self.sfc = sfc
+    def __init__ (self, sfc, size = None):
+        if size is None:
+            self.sfc = sfc
+        else:
+            self.sfc = blank_sfc(size)
+            position_sfc(sfc, self.sfc)
         Widget.__init__(self, sfc.get_size())
 
     def draw (self, screen, pos = (0, 0), draw_bg = True):
@@ -227,9 +231,9 @@ class Img (Widget):
 
 
 class Text (Img):
-    def __init__ (self, size, text, font):
+    def __init__ (self, size, text, font, just = 1):
         text = render_text(font, text, conf.TEXT_COLOUR, width = size[0],
-                           just = 1)[0]
+                           just = just)[0]
         ts = text.get_size()
         size = [ts[i] if size[i] is None else size[i] for i in (0, 1)]
         sfc = blank_sfc(size)

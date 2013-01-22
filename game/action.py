@@ -115,38 +115,40 @@ action: if the player is selecting an area for an action, this is the Action
             showing_type = 'p'
         else: # area
             showing_type = 'a'
-        if action:
-            showing_type += ' action'
         if hasattr(self, 'showing') and obj == self.showing and \
-           showing_type == self.showing_type:
+           showing_type == self.showing_type and action == self.action:
             return
         self.showing = obj
         self.showing_type = showing_type
-        # data is a list of rows, each a list of widget representations, or
-        # just a row if there's only one row.  Widgets are vertically centred
-        # within rows.  Representations are (font, text, width), a surface, a
-        # Widget, or an int for padding.  A row can also be an int for padding.
+        self.action = action
+        # data is a list of rows, each a list of widget representations.
+        # Widgets are vertically centred within rows.  Representations are
+        # (font, text, width), a surface, a Widget, or an int for padding.  A
+        # row can also be an int for padding.
         width = self.size[0]
+        data = []
         if obj is None:
-            data = (('subhead', 'Nothing selected', width),)
+            head = 'Nothing selected'
         elif showing_type[0] == 'c':
+            # TODO: method icons
             current_method = obj.current_method if obj.sending else None
             s = ''
-            for method, data in obj.methods.iteritems():
+            for method, m_data in obj.methods.iteritems():
                 s += method[:2]
                 if method == current_method:
                     s += '+'
-                elif data['disabled']:
+                elif m_data['disabled']:
                     s += '/'
-            data = (
-                (('subhead', 'Selected: connection', width),),
+            head = 'Selected: connection'
+            data += [
+                5,
                 (('normal', s, None),),
+                5,
                 (('normal', '{0} km long'.format(ir(obj.dist)), None),)
-            )
+            ]
         elif showing_type[0] == 'p':
-            data = (
-                ('subhead', 'Selected: {0}'.format(obj.name), width),
-            )
+            head = 'Selected: {0}'.format(obj.name)
+            # TODO: icon:
             #ic_w = obj.img.get_width()
             #data = (
                 #ic_w + 5,
@@ -159,21 +161,37 @@ action: if the player is selecting an area for an action, this is the Action
                 name, people, cons = obj
             else:
                 name = obj
-            data = ((('subhead', 'Selected: {0}'.format(name), width),),)
+            head = 'Selected: {0}'.format(name)
             if action:
                 body_text = 'contains {0} people, {1} connections'
-                data += ((('normal', body_text.format(len(people),
-                           len(cons)),
-                          width),),)
-        if isinstance(data[0], pg.Surface) or \
-           isinstance(data[0][0], basestring):
-            data = (data,)
+                data += [
+                    5,
+                    (('normal', body_text.format(len(people), len(cons)),
+                      width),)
+                ]
         if action:
-            data += (5, (ui.Button(width, 'Cancel', self._cancel),),)
+            # insert action note
             if obj is None:
-                pass # TODO: show 'select a(n) person/connection/area for the action '<action>''
+                text = 'Select {0} for the action \'{1}\'.'
+                text = text.format({
+                    'p': 'a person',
+                    'c': 'a connection',
+                    'a': 'an area'
+                }[action.type], action.data['desc'])
             else:
-                data += (5, (ui.Button(width, 'OK', self._start),),)
+                text = '(For the action \'{0}\'.)'.format(action.data['desc'])
+            data = [5, (('normal', text, width),)] + data
+        # add heading
+        data = [10, (('subhead', head, width),)] + data
+        if action:
+            # add buttons
+            data.append(10)
+            if obj is not None:
+                data += [
+                    (ui.Button(width, 'OK', self._start),),
+                    5
+                ]
+            data.append((ui.Button(width, 'Cancel', self._cancel),))
         # generate widgets
         ws = []
         y = 0
@@ -197,7 +215,8 @@ action: if the player is selecting an area for an action, this is the Action
                 else:
                     # text
                     font, text, ww = w
-                    w = ui.Text((ww, None), text, font)
+                    just = 0 if font == 'normal' else 1
+                    w = ui.Text((ww, None), text, font, just)
                 w.bg = self._bg
                 this_ws.append((x, w))
                 x += w.size[0]
