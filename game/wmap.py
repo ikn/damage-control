@@ -265,7 +265,7 @@ class Map (Widget):
     def __init__ (self, level, size, selected):
         Widget.__init__(self, size)
         self.level = level
-        self._selected = selected
+        self.selected = selected
         self.selecting = None
         self._actions = []
         self._news = []
@@ -428,19 +428,19 @@ class Map (Widget):
                 # in the area as wanted by Selected
                 ps, cs = self.objs_in(evt.pos, self.selecting.data['radius'])
                 obj = (obj, ps, cs)
-            self._selected.show(obj, self.selecting)
+            self.selected.show(obj, self.selecting)
 
     def cancel_selecting (self):
         self.selecting = None
-        obj = self._selected.showing
-        if self._selected.showing_type == 'a':
+        obj = self.selected.showing
+        if self.selected.showing_type == 'a':
             obj = obj[0]
-        self._selected.show(obj)
+        self.selected.show(obj)
 
     def start_action (self):
         action = self.selecting
         self.selecting = False
-        time, cost, news = action.start(self._selected.showing)
+        time, cost, news = action.start(self.selected.showing)
         self._actions.append([action, time])
         self.level.spend(cost)
         if news is not None:
@@ -453,7 +453,7 @@ class Map (Widget):
             return
         self.selecting = action
         # Selected.showing_type is '', 'c', 'p' or 'a'
-        sel = self._selected
+        sel = self.selected
         if sel.showing is None or sel.showing_type == 'a' or \
            sel.showing_type != action.type:
             sel.show(None, action)

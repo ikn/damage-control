@@ -75,7 +75,9 @@ class Level (object):
             del self._clicked[b]
 
     def _cancel (self, *args):
-        if self.wmap.selecting:
+        if self.wmap.selected.showing_type:
+            self.wmap.selected.show(None, self.wmap.selecting)
+        elif self.wmap.selecting:
             self.wmap.cancel_selecting()
         #else:
             #self.pause()
