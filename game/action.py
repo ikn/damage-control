@@ -182,7 +182,7 @@ action: if the player is selecting an area for an action, this is the Action
                 text = '(For the action \'{0}\'.)'.format(action.data['desc'])
             data = [5, (('normal', text, width),)] + data
         # add heading
-        data = [10, (('subhead', head, width),)] + data
+        data = [5, (('subhead', head, width),)] + data
         if action:
             # add buttons
             data.append(10)

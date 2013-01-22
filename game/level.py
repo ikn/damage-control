@@ -1,7 +1,7 @@
 import pygame as pg
 
 from conf import conf
-from util import combine_drawn
+from util import combine_drawn, sum_pos
 import ui
 from wmap import Map
 from action import mk_button, Selected
@@ -13,6 +13,8 @@ def _setup_widgets (bg, *ws):
         w.bg = bg
         if isinstance(w, ui.Container):
             _setup_widgets(bg, *(child for pos, child in w.widgets))
+        if isinstance(w, InfluenceWidget):
+            w.text.bg = w.bg
 
 
 def mk_ui (level):
@@ -20,6 +22,7 @@ def mk_ui (level):
     news_r = conf.NEWS_LIST_RECT
     actions_r = conf.ACTIONS_LIST_RECT
     sel = Selected(bg)
+    influence = InfluenceWidget(level.influence)
     wmap = Map(level, conf.WMAP_RECT[2:], sel)
     sel.wmap = wmap
     news = ui.List(news_r[2:])
@@ -30,13 +33,39 @@ def mk_ui (level):
         (news_r[:2], news),
         ((actions_r[0], 0),
          ui.Text((actions_r[2], conf.HEAD_HEIGHT), 'ACTIONS', 'head')),
+        (conf.INFLUENCE_RECT[:2], influence),
         (conf.SELECTED_RECT[:2], sel),
         (actions_r[:2], ui.List(actions_r[2:], *[
             mk_button(wmap, action) for action in conf.ACTIONS
         ]))
     )
     _setup_widgets(bg, c)
-    return (c, wmap, news)
+    return (c, wmap, news, influence)
+
+
+class InfluenceWidget (ui.Widget):
+    def __init__ (self, n):
+        ui.Widget.__init__(self, conf.INFLUENCE_RECT[2:])
+        self._n = None
+        self.set_val(n)
+
+    def set_val (self, n):
+        n = int(n)
+        if n != self._n:
+            text = 'Influence points: {0}'.format(n)
+            self.text = ui.Text(self.size, text, 'normal', 0)
+            if self._n is not None:
+                self.text.bg = self.bg
+            self._n = n
+
+    def draw (self, screen, pos, draw_bg = True):
+        rtn = False
+        if ui.Widget.draw(self, screen, pos, draw_bg):
+            draw_bg = False
+        if self.dirty:
+            rtn = True
+            self.dirty = False
+        return combine_drawn(rtn, self.text.draw(screen, pos, draw_bg))
 
 
 class Level (object):
@@ -55,13 +84,14 @@ class Level (object):
         self.init()
 
     def init (self):
-        self.ui, self.wmap, self.news = mk_ui(self)
-        # TODO: add initial text (as news)
         # reset variables
         self.influence = conf.INITIAL_INFLUENCE
         self._clicked = {}
         self.dirty = True
         self.paused = False
+        # create UI
+        self.ui, self.wmap, self.news, self.influence_w = mk_ui(self)
+        # TODO: add initial text (as news)
 
     def _mbdown (self, evt):
         w = self.ui.click(evt.pos, evt)
@@ -89,6 +119,7 @@ class Level (object):
 
     def spend (self, cost):
         self.influence -= cost
+        self.influence_w.set_val(self.influence)
 
     def update (self):
         if self.paused:

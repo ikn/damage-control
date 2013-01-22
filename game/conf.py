@@ -107,8 +107,11 @@ class Conf (object):
     sel_h = 200
     SELECTED_RECT = (RES[0] - actions_w + 2, RES[1] - sel_h, actions_w - 4,
                      sel_h - 2)
+    influence_h = 40
+    INFLUENCE_RECT = (RES[0] - actions_w + 2, RES[1] - sel_h - influence_h,
+                      actions_w - 4, influence_h)
     ACTIONS_LIST_RECT = (RES[0] - actions_w, sidebar_t, actions_w,
-                         RES[1] - sidebar_t - sel_h)
+                         RES[1] - sidebar_t - sel_h - influence_h)
     WMAP_RECT = (NEWS_LIST_RECT[2], 0, RES[0] - NEWS_LIST_RECT[2] - actions_w,
                  RES[1])
     # world map
