@@ -51,7 +51,7 @@ class Level (object):
         ])
         for k, v in conf.REQUIRED_FONTS['level'].iteritems():
             game.fonts[k] = v
-        ui.render_text = game.render_text
+        ui.game = game
         self.init()
 
     def init (self):

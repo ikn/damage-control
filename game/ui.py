@@ -94,8 +94,8 @@ bottom: index of bottom visible widget + 1.
         self.top = 0
         self.bottom = 0
         # add scroll buttons
-        up = Button(size[0], '^', self._scroll_by, -1)
-        down = Button(size[0], 'v', self._scroll_by, 1)
+        up = Button(size[0], game.img('arrow-up.png'), self._scroll_by, -1)
+        down = Button(size[0], game.img('arrow-down.png'), self._scroll_by, 1)
         self.widgets += [((0, 0), up), ((0, size[1] - down.size[1]), down)]
         g = conf.LIST_GAP
         self._inner_top = up.size[1] + g
@@ -232,8 +232,8 @@ class Img (Widget):
 
 class Text (Img):
     def __init__ (self, size, text, font, just = 1):
-        text = render_text(font, text, conf.TEXT_COLOUR, width = size[0],
-                           just = just)[0]
+        text = game.render_text(font, text, conf.TEXT_COLOUR, width = size[0],
+                                just = just)[0]
         ts = text.get_size()
         size = [ts[i] if size[i] is None else size[i] for i in (0, 1)]
         sfc = blank_sfc(size)
@@ -246,11 +246,12 @@ class ListItem (Img):
         # text is string or surface
         data = conf.LIST_ITEM
         if isinstance(text, basestring):
-            sfc = render_text('normal', text, conf.TEXT_COLOUR,
-                              width = width, bg = data['bg colour'],
-                              pad = data['padding'])[0]
+            sfc = game.render_text('normal', text, conf.TEXT_COLOUR,
+                                   width = width, bg = data['bg colour'],
+                                   pad = data['padding'])[0]
         else:
-            sfc = pg.Surface(width, text.get_height() + 2 * data['padding'][1])
+            sfc = pg.Surface((width,
+                              text.get_height() + 2 * data['padding'][1]))
             sfc = sfc.convert_alpha()
             sfc.fill(data['bg colour'])
             position_sfc(text, sfc)
