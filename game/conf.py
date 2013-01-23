@@ -155,6 +155,32 @@ class Conf (object):
     CON_RADIUS_SQ = 30 ** 2
     AREAS = ['Area 11']
     NUM_AREAS = min(len(AREAS), 9)
+    FACTS = [
+        'your favourite game is Superman 64',
+        'you\'re actually a vampire'
+    ]
+    # person names
+    FULL_NAMES = [
+        'your mother', 'your father', 'your brother', 'your sister',
+        'your son', 'your daughter', 'your spouse', 'your nemesis',
+        'your neighbour', 'the prime minister of the world', 'some guy',
+        'your pet ferret', 'the king of the homeless', 'King Henry VIII',
+        'your evil clone', 'your future self', 'a rabid boar', 'Zeus',
+        'Mack McMacdonald'
+    ]
+    # keys can be (male, female); values are weightings
+    TITLES = {
+        None: 20, ('King', 'Queen'): 1, ('Sir', 'Dame'): 4, 'Angel': .5,
+        'Reverend': 1, 'Reverend Doctor Doctor': .2, 'Doctor': 2, 'Colonel': 1,
+        'Sideshow': 1
+    }
+    FORENAMES = {
+        'male': ['Cuthbert', 'Reginald', 'Satan'],
+        'female': []
+    }
+    SURNAMES = [
+        'of Narnia', 'the Conqueror'
+    ]
     # if dist, speed is in pixels per day
     # else time is in days
     METHODS = {
