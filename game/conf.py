@@ -101,6 +101,9 @@ class Conf (object):
                     SOUNDS[ident] = n + 1
 
     # graphics
+    # images
+    METHOD_ICON_SIZE = 12
+    # layout
     sidebar_t = 40
     NEWS_LIST_RECT = (0, sidebar_t, 249, RES[1] - sidebar_t)
     actions_w = 149
@@ -129,7 +132,6 @@ class Conf (object):
         'width': 3,
         'colour': ((255, 255, 255, 90), (150, 150, 150, 46)) # lt, rb
     }
-
     # text rendering
     TEXT_COLOUR = (255, 255, 255)
     # per-backend, each a {key: value} dict to update Game.fonts with

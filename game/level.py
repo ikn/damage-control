@@ -4,7 +4,7 @@ from conf import conf
 from util import combine_drawn, sum_pos
 import ui
 from wmap import Map
-from action import mk_button, Selected
+import action
 from ext import evthandler as eh
 
 
@@ -21,7 +21,7 @@ def mk_ui (level):
     bg = level.game.img('bg.png')
     news_r = conf.NEWS_LIST_RECT
     actions_r = conf.ACTIONS_LIST_RECT
-    sel = Selected(bg)
+    sel = action.Selected(bg)
     influence = InfluenceWidget(level.influence)
     wmap = Map(level, conf.WMAP_RECT[2:], sel)
     sel.wmap = wmap
@@ -36,7 +36,7 @@ def mk_ui (level):
         (conf.INFLUENCE_RECT[:2], influence),
         (conf.SELECTED_RECT[:2], sel),
         (actions_r[:2], ui.List(actions_r[2:], *[
-            mk_button(wmap, action) for action in conf.ACTIONS
+            action.mk_button(wmap, a) for a in conf.ACTIONS
         ]))
     )
     _setup_widgets(bg, c)
@@ -80,6 +80,7 @@ class Level (object):
         ])
         for k, v in conf.REQUIRED_FONTS['level'].iteritems():
             game.fonts[k] = v
+        action.game = game
         ui.game = game
         self.init()
 

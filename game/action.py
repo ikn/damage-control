@@ -94,6 +94,25 @@ class Selected (ui.Container):
             self.wmap.start_action()
             self.wmap.cancel_selecting()
 
+    def _method_map (self, methods):
+        width = self.size[0]
+        pad = 5
+        sz = conf.METHOD_ICON_SIZE
+        n_per_row = (width + pad) / (sz + pad)
+        rows = []
+        row = []
+        for method, disabled in methods:
+            if len(row) == 2 * n_per_row:
+                rows.append(row)
+                rows.append(pad)
+                row = []
+            img = game.img(method + '.png')
+            row.append(img)
+            row.append(pad)
+        rows.append(row)
+        row.pop(-1)
+        return rows
+
     def show (self, obj, action = None):
         """Show something.
 
@@ -130,19 +149,21 @@ action: if the player is selecting an area for an action, this is the Action
         if obj is None:
             head = 'Nothing selected'
         elif showing_type == 'c':
-            # TODO: method icons
             current_method = obj.current_method if obj.sending else None
-            s = ''
-            for method, m_data in obj.methods.iteritems():
-                s += method[:2]
-                if method == current_method:
-                    s += '+'
-                elif m_data['disabled']:
-                    s += '/'
+            #s = ''
+            #for method, m_data in obj.methods.iteritems():
+                #s += method[:2]
+                #if method == current_method:
+                    #s += '+'
+                #elif m_data['disabled']:
+                    #s += '/'
             head = 'Selected: connection'
+            data.append(5)
+            data += self._method_map(
+                [(method, data['disabled'])
+                 for method, data in obj.methods.iteritems()]
+            )
             data += [
-                5,
-                (('normal', s, None),),
                 5,
                 (('normal', '{0} km long'.format(ir(obj.dist)), None),)
             ]
