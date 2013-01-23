@@ -102,7 +102,9 @@ class Selected (ui.Container):
         n_per_row = (width + pad) / (sz + pad)
         rows = []
         row = []
-        for method, disabled, using in methods:
+        for method in methods:
+            if hl:
+                method, disabled, using = method
             if len(row) == 2 * n_per_row:
                 rows.append(row)
                 rows.append(pad)
@@ -158,13 +160,6 @@ action: if the player is selecting an area for an action, this is the Action
             head = 'Nothing selected'
         elif showing_type == 'c':
             current_method = obj.current_method if obj.sending else None
-            #s = ''
-            #for method, m_data in obj.methods.iteritems():
-                #s += method[:2]
-                #if method == current_method:
-                    #s += '+'
-                #elif m_data['disabled']:
-                    #s += '/'
             head = 'Selected: connection'
             data.append(5)
             data += self._method_map(
@@ -202,6 +197,10 @@ action: if the player is selecting an area for an action, this is the Action
             else:
                 text = '(For the action \'{0}\'.)'.format(action.data['desc'])
             data = [5, (('normal', text, width),)] + data
+            if obj is None:
+                data = [data[0]] + \
+                       self._method_map(action.data['affects'], False) + \
+                       data[1:]
         # add heading
         data = [5, (('subhead', head, width),)] + data
         # person icon
