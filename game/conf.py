@@ -120,8 +120,9 @@ class Conf (object):
                  RES[1])
     # world map
     WMAP_BORDER = 15 # contains no people
-    LINE_COLOUR_GOOD = (17, 209, 93),
-    LINE_COLOUR_BAD = (196, 94, 99)
+    # (unselected, selected)
+    LINE_COLOUR_GOOD = ((17, 209, 93), (225, 255, 225))
+    LINE_COLOUR_BAD = ((196, 94, 99), (255, 200, 200))
     # ui
     HEAD_HEIGHT = 32
     LIST_GAP = 2
@@ -187,21 +188,21 @@ class Conf (object):
     # if dist, speed is in pixels per day
     # else time is in days
     METHODS = {
-        'phone': {'dist': False, 'time': 6, 'freq': 1},
-        'in person': {'dist': True, 'speed': 2, 'freq': 1},
-        'e-mail': {'dist': False, 'time': 6, 'freq': 1},
-        'fax': {'dist': False, 'time': 6, 'freq': 1},
-        'mail': {'dist': True, 'speed': 6, 'freq': 1},
-        'carrier pigeon': {'dist': True, 'speed': 6, 'freq': 1},
-        'message in a bottle': {'dist': True, 'speed': 1, 'freq': 1},
-        'telepathy': {'dist': False, 'time': 6, 'freq': 1},
-        'beacon': {'dist': True, 'speed': 6, 'freq': 1},
-        'drums': {'dist': True, 'speed': 6, 'freq': 1},
-        'radio': {'dist': False, 'time': 6, 'freq': 1},
-        'pager': {'dist': False, 'time': 6, 'freq': 1},
-        'newspaper crossword': {'dist': False, 'time': 6, 'freq': 1},
-        'skywriting': {'dist': False, 'time': 6, 'freq': 1},
-        'telegraph': {'dist': False, 'time': 6, 'freq': 1}
+        'phone': {'dist': False, 'time': 1, 'freq': 1},
+        'in person': {'dist': True, 'speed': 10, 'freq': 1},
+        'e-mail': {'dist': False, 'time': 1, 'freq': 1},
+        'fax': {'dist': False, 'time': 1, 'freq': 1},
+        'mail': {'dist': True, 'speed': 10, 'freq': 1},
+        'carrier pigeon': {'dist': True, 'speed': 1, 'freq': 1},
+        'message in a bottle': {'dist': True, 'speed': 10, 'freq': 1},
+        'telepathy': {'dist': False, 'time': 1, 'freq': 1},
+        'beacon': {'dist': True, 'speed': 10, 'freq': 1},
+        'drums': {'dist': True, 'speed': 10, 'freq': 1},
+        'radio': {'dist': False, 'time': 1, 'freq': 1},
+        'pager': {'dist': False, 'time': 1, 'freq': 1},
+        'newspaper crossword': {'dist': False, 'time': 1, 'freq': 1},
+        'skywriting': {'dist': False, 'time': 1, 'freq': 1},
+        'telegraph': {'dist': False, 'time': 1, 'freq': 1}
     }
     # type: 'c' (connection), 'p' (person) or 'a' (area); area type requires
     #       radius in pixels

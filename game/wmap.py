@@ -64,6 +64,7 @@ current_method: the method currently being used to send a message (None if
                                    for s, m in methods)
         self.sending = False
         self.sent = False
+        self.selected = False
         self._pos_img = level.game.img('connection-progress.png')
         w, h = self._pos_img.get_size()
         self._offset = (-w / 2, -h / 2)
@@ -147,6 +148,12 @@ Returns whether any methods are available, or None if already sent.
         self.sending = False
         del self.current_method, self.progress
 
+    def select (self):
+        self.selected = True
+
+    def unselect (self):
+        self.selected = False
+
     def update (self):
         if self.sending and self.current_method is not None:
             self.progress += self.methods[self.current_method]['speed']
@@ -161,8 +168,9 @@ Returns whether any methods are available, or None if already sent.
         colour = conf.LINE_COLOUR_BAD if self.sent else conf.LINE_COLOUR_GOOD
         p1 = self.people[0].pos
         p2 = self.people[1].pos
-        pg.draw.aaline(screen, colour, (pos[0] + p1[0], pos[1] + p1[1]),
-                       (pos[0] + p2[0], pos[1] + p2[1]))
+        a = (pos[0] + p1[0], pos[1] + p1[1])
+        b = (pos[0] + p2[0], pos[1] + p2[1])
+        pg.draw.aaline(screen, colour[self.selected], a, b)
 
     def draw_pos (self, screen, pos = (0, 0)):
         if self.sending:
@@ -184,9 +192,11 @@ class Person (object):
         self.cons = []
         self.knows = False
         self._know = []
+        self.selected = False
         self.sending = False
         img = level.game.img
-        self._imgs = (img('person.png'), img('person-knows.png'))
+        self._imgs = (img('person.png'), img('person-knows.png'),
+                      img('person-sel.png'), img('person-knows-sel.png'))
         w, h = self._imgs[0].get_size()
         self._offset = (-w / 2, -h / 2)
 
@@ -200,7 +210,7 @@ class Person (object):
         return self.wmap.dists[frozenset((self, other))]
 
     def img (self):
-        return self._imgs[self.knows]
+        return self._imgs[self.knows + 2 * self.selected]
 
     def recieve (self, con = None):
         """Recieve the message."""
@@ -255,6 +265,12 @@ class Person (object):
     def enable_methods (self, action, *methods):
         for c in self.cons:
             c.enable_methods(action, *methods)
+
+    def select (self):
+        self.selected = True
+
+    def unselect (self):
+        self.selected = False
 
     def update (self):
         if self.knows and self.sending is False:

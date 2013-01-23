@@ -97,18 +97,19 @@ class Selected (ui.Container):
     def _method_map (self, methods, hl = True):
         width = self.size[0]
         pad = 1
-        using_b_c = conf.LINE_COLOUR_BAD
+        using_b_c = conf.LINE_COLOUR_BAD[0]
         sz = conf.METHOD_ICON_SIZE
-        n_per_row = (width + pad) / (sz + pad)
+        n_per_row = (width + pad) / (sz + 6 + pad)
+        x0 = (width - (n_per_row * (sz + 6) + (n_per_row - 1) * pad)) / 2
         rows = []
-        row = []
+        row = [x0]
         for method in methods:
             if hl:
                 method, disabled, using = method
-            if len(row) == 2 * n_per_row:
+            if len(row) == 2 * n_per_row + 1:
                 rows.append(row)
                 rows.append(pad)
-                row = []
+                row = [x0]
             img = game.img(method + '.png')
             sfc = blank_sfc((sz + 6, sz + 6))
             if hl and using:
@@ -147,6 +148,13 @@ action: if the player is selecting an area for an action, this is the Action
         if hasattr(self, 'showing') and obj == self.showing and \
            showing_type == self.showing_type and action == self.action:
             return
+        # update things' selected states
+        if not hasattr(self, 'showing') or obj != self.showing:
+            if hasattr(self, 'showing'):
+                if self.showing_type in ('p', 'c'):
+                    self.showing.unselect()
+            if showing_type in ('p', 'c'):
+                obj.select()
         self.showing = obj
         self.showing_type = showing_type
         self.action = action
