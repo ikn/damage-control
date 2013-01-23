@@ -4,7 +4,7 @@ import pygame as pg
 from pygame import Surface
 
 from conf import conf
-from util import ir, weighted_rand, combine_drawn
+from util import ir, weighted_rand, combine_drawn, blank_sfc
 import wmap
 import ui
 
@@ -94,20 +94,28 @@ class Selected (ui.Container):
             self.wmap.start_action()
             self.wmap.cancel_selecting()
 
-    def _method_map (self, methods):
+    def _method_map (self, methods, hl = True):
         width = self.size[0]
-        pad = 5
+        pad = 1
+        using_b_c = conf.LINE_COLOUR_BAD
         sz = conf.METHOD_ICON_SIZE
         n_per_row = (width + pad) / (sz + pad)
         rows = []
         row = []
-        for method, disabled in methods:
+        for method, disabled, using in methods:
             if len(row) == 2 * n_per_row:
                 rows.append(row)
                 rows.append(pad)
                 row = []
             img = game.img(method + '.png')
-            row.append(img)
+            sfc = blank_sfc((sz + 6, sz + 6))
+            if hl and using:
+                sfc.fill(using_b_c)
+                sfc.fill((0, 0, 0, 0), (2, 2, sz + 2, sz + 2))
+            sfc.blit(img, (3, 3))
+            if hl and disabled:
+                sfc.fill((150, 150, 150), None, pg.BLEND_RGBA_MULT)
+            row.append(sfc)
             row.append(pad)
         rows.append(row)
         row.pop(-1)
@@ -160,7 +168,7 @@ action: if the player is selecting an area for an action, this is the Action
             head = 'Selected: connection'
             data.append(5)
             data += self._method_map(
-                [(method, data['disabled'])
+                [(method, data['disabled'], method == current_method)
                  for method, data in obj.methods.iteritems()]
             )
             data += [

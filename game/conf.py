@@ -103,6 +103,7 @@ class Conf (object):
     # graphics
     # images
     METHOD_ICON_SIZE = 12
+    METHOD_USING_BORDER_COLOUR = (17, 209, 93)
     # layout
     sidebar_t = 40
     NEWS_LIST_RECT = (0, sidebar_t, 249, RES[1] - sidebar_t)
