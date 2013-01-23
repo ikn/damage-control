@@ -144,7 +144,7 @@ class Conf (object):
     })
 
     # gameplay
-    INITIAL_INFLUENCE = 10
+    INITIAL_INFLUENCE = 0
     INFLUENCE_GROWTH_RATE = .1 # increase per frame
     DAY_FRAMES = 4 * FPS['level']
     # world map initialisation
@@ -257,6 +257,112 @@ class Conf (object):
 'find the source in %r.',
             ), 'news end': (
 'end jamming',
+            )
+        }, {
+            'desc': 'send virus to computer',
+            'type': 'p',
+            'cost': 10,
+            'affects': ('e-mail', 'fax'),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'shoot down a pigeon',
+            'type': 'c',
+            'cost': 10,
+            'affects': ('carrier pigeon',),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'bribe newspaper editor not to include crossword message',
+            'type': 'c',
+            'cost': 10,
+            'affects': ('newspaper crossword',),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'cause fog',
+            'type': 'a',
+            'radius': 150,
+            'cost': 10,
+            'affects': ('beacon',),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'play a loud sound',
+            'type': 'a',
+            'radius': 150,
+            'cost': 10,
+            'affects': ('message in a bottle', 'drums'),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'order a hit',
+            'type': 'p',
+            'cost': 10,
+            'affects': METHODS.keys(),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'cause a storm',
+            'type': 'a',
+            'radius': 150,
+            'cost': 10,
+            'affects': ('phone', 'fax', 'carrier pigeon', 'beacon',
+                        'telegraph'),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'cause an earthquake',
+            'type': 'a',
+            'radius': 150,
+            'cost': 10,
+            'affects': METHODS.keys(),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
+            )
+        }, {
+            'desc': 'incite a riot',
+            'type': 'a',
+            'radius': 150,
+            'cost': 10,
+            'affects': ('in person', 'mail', 'carrier pigeon', 'beacon',
+                        'drums', 'newspaper crossword'),
+            'time': (4, 6, 7),
+            'news start': (
+'start',
+            ), 'news end': (
+'end',
             )
         }
     ]
