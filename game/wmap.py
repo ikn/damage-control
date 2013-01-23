@@ -451,7 +451,6 @@ class Map (Widget):
         ps = []
         for p in self.people:
             px, py = p.pos
-            #print (px, py), (x - px) ** 2 + (y - py) ** 2 <= r_sq
             if (x - px) ** 2 + (y - py) ** 2 <= r_sq:
                 ps.append(p)
         cs = []

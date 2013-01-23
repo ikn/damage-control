@@ -94,29 +94,35 @@ class Selected (ui.Container):
             self.wmap.start_action()
             self.wmap.cancel_selecting()
 
-    def _method_map (self, methods, hl = True):
+    def _method_map (self, methods):
         width = self.size[0]
         pad = 1
         using_b_c = conf.LINE_COLOUR_BAD[0]
+        affected_b_c = conf.LINE_COLOUR_GOOD[0]
         sz = conf.METHOD_ICON_SIZE
         n_per_row = (width + pad) / (sz + 6 + pad)
         x0 = (width - (n_per_row * (sz + 6) + (n_per_row - 1) * pad)) / 2
         rows = []
         row = [x0]
         for method in methods:
-            if hl:
-                method, disabled, using = method
+            method, disabled, using, affected = method
             if len(row) == 2 * n_per_row + 1:
                 rows.append(row)
                 rows.append(pad)
                 row = [x0]
             img = game.img(method + '.png')
             sfc = blank_sfc((sz + 6, sz + 6))
-            if hl and using:
+            if using:
                 sfc.fill(using_b_c)
+            if affected:
+                if using:
+                    sfc.fill(affected_b_c, (1, 1, sz + 4, sz + 4))
+                else:
+                    sfc.fill(affected_b_c)
+            if using or affected:
                 sfc.fill((0, 0, 0, 0), (2, 2, sz + 2, sz + 2))
             sfc.blit(img, (3, 3))
-            if hl and disabled:
+            if disabled:
                 sfc.fill((150, 150, 150), None, pg.BLEND_RGBA_MULT)
             row.append(sfc)
             row.append(pad)
@@ -155,7 +161,6 @@ action: if the player is selecting an area for an action, this is the Action
                     self.showing.unselect()
                 elif self.action and self.showing_type == 'a':
                     self.wmap.unsel_area()
-            #print showing_type, action
             if showing_type in ('p', 'c'):
                 obj.select()
             elif action and showing_type == 'a':
@@ -173,10 +178,12 @@ action: if the player is selecting an area for an action, this is the Action
             head = 'Nothing selected'
         elif showing_type == 'c':
             current_method = obj.current_method if obj.sending else None
+            affected = action.data['affects'] if action else []
             head = 'Selected: connection'
             data.append(5)
             data += self._method_map(
-                [(method, data['disabled'], method == current_method)
+                [(method, data['disabled'], method == current_method,
+                  method in affected)
                  for method, data in obj.methods.iteritems()]
             )
             data += [
@@ -211,9 +218,9 @@ action: if the player is selecting an area for an action, this is the Action
                 text = '(For the action \'{0}\'.)'.format(action.data['desc'])
             data = [5, (('normal', text, width),)] + data
             if obj is None:
-                data = [data[0]] + \
-                       self._method_map(action.data['affects'], False) + \
-                       data[1:]
+                methods = [(method, False, False, True)
+                           for method in action.data['affects']]
+                data = [data[0]] + self._method_map(methods) + data[1:]
         # add heading
         data = [5, (('subhead', head, width),)] + data
         # person icon
