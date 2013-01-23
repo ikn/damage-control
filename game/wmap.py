@@ -187,7 +187,19 @@ class Person (object):
     def __init__ (self, level, wmap, pos):
         self.level = level
         self.wmap = wmap
-        self.name = 'Some guy'
+        # generate name
+        gender = choice(conf.FORENAMES.keys())
+        name = weighted_rand(conf.TITLES)
+        if isinstance(name, tuple):
+            name = name[gender == 'female']
+        if name is None:
+            name = ''
+        else:
+            name += ' '
+        fore = choice(conf.FORENAMES[gender])
+        sur = choice(conf.SURNAMES)
+        name += fore + ' ' + sur
+        self.name = name
         self.pos = pos
         self.cons = []
         self.knows = False
@@ -400,11 +412,13 @@ class Map (Widget):
             add_con(p1, p2)
             frozen_groups = set(frozenset(g) for g in groups.itervalues())
 
+        # give some people full names
+        ps = ps[:min(conf.NUM_FULL_NAMES, len(ps))]
+        for p, name in zip(ps, sample(conf.FULL_NAMES, len(ps))):
+            p.name = name
         # let someone know
         self.n_know = 0
-        p = choice(ps)
-        p.recieve()
-        p.name = 'initial' # mother, brother, etc.
+        ps[0].recieve()
 
     def obj_at (self, pos, types = 'cap'):
         """Get object at a position, as taken by Selected.show."""

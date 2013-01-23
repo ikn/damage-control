@@ -1,3 +1,5 @@
+from random import choice
+
 import pygame as pg
 
 from conf import conf
@@ -92,6 +94,10 @@ class Level (object):
         self.paused = False
         # create UI
         self.ui, self.wmap, self.news, self.influence_w = mk_ui(self)
+        text = '{0} has found out that {1}.  Stop the rumour from spreading!'
+        text = text.format(self.wmap.people[0].name.capitalize(),
+                           choice(conf.FACTS))
+        self.add_news(text)
         # TODO: add initial text (as news)
 
     def _mbdown (self, evt):

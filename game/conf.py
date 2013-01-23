@@ -157,11 +157,21 @@ class Conf (object):
     # world map: running
     PERSON_RADIUS = 12 # must be <= PERSON_NEAREST
     CON_RADIUS_SQ = 30 ** 2
-    AREAS = ['Area 11']
+    AREAS = ['Area 51']
     NUM_AREAS = min(len(AREAS), 9)
     FACTS = [
         'your favourite game is Superman 64',
-        'you\'re actually a vampire'
+        'you\'re actually a vampire',
+        'you hate fruit',
+        'you\'re always contagious',
+        'you hate rumours',
+        'you have a monopoly on the world\'s supply of chocolate',
+        'you\'re a politician at night',
+        'you can\'t grow eyebrows',
+        'you feed your guests to your pet dragon',
+        'you stretch your children on a daily basis',
+        'you lock up sane people in mental asylums',
+        'your grass is greener'
     ]
     # person names
     FULL_NAMES = [
@@ -170,39 +180,51 @@ class Conf (object):
         'your neighbour', 'the prime minister of the world', 'some guy',
         'your pet ferret', 'the king of the homeless', 'King Henry VIII',
         'your evil clone', 'your future self', 'a rabid boar', 'Zeus',
-        'Mack McMacdonald'
+        'Mack McMacdonald', 'Frog?'
     ]
+    NUM_FULL_NAMES = min(len(FULL_NAMES), 10)
     # keys can be (male, female); values are weightings
     TITLES = {
-        None: 20, ('King', 'Queen'): 1, ('Sir', 'Dame'): 4, 'Angel': .5,
-        'Reverend': 1, 'Reverend Doctor Doctor': .2, 'Doctor': 2, 'Colonel': 1,
-        'Sideshow': 1
+        None: 30, ('King', 'Queen'): 1, ('Sir', 'Dame'): 5, 'Angel': .5,
+        'Reverend': 2, 'Reverend Doctor Doctor': .2, 'Doctor': 3, 'Colonel': 1,
+        'Sideshow': 1, ('Duke', 'Duchess'): 1, ('Count', 'Countess'): 1,
+        'Pope': .5
     }
     FORENAMES = {
-        'male': ['Cuthbert', 'Reginald', 'Satan'],
-        'female': []
+        'male': [
+            'Cuthbert', 'Satan', 'Aloisius', 'Mortimer', 'Balthasar',
+            'Caspian', 'Bartholomew', 'Basil', 'Rudyard', 'Gerald', 'Reginald',
+            'Crofton', 'Charles', 'Archibald', 'Blake', 'Casper', 'Edgar',
+            'Elias', 'Elwin', 'Horace', 'Ignatius', 'Julius', 'Lucius',
+            'Maurice', 'Quinn', 'Raleigh', 'Wilbur', 'Xavier', 'Alfred'
+        ], 'female': [
+            'Agatha', 'Agnes', 'Edith', 'Gertrude', 'Guinevere', 'Mabel',
+            'Ophelia', 'Salome', 'Beatrice', 'Millicent', 'Mable', 'Vera',
+            'Penelope', 'Matilda', 'Aurelia', 'Euphemia', 'Lillith', 'Ethel',
+            'Mildred', 'Ada', 'Nettie', 'Minerva', 'Aurelia', 'Doris', 'Rowena'
+        ]
     }
     SURNAMES = [
-        'of Narnia', 'the Conqueror'
+        'of Narnia', 'the Conqueror', 'Doe', 'the Third'
     ]
     # if dist, speed is in pixels per day
     # else time is in days
     METHODS = {
-        'phone': {'dist': False, 'time': 1, 'freq': 1},
-        'in person': {'dist': True, 'speed': 10, 'freq': 1},
-        'e-mail': {'dist': False, 'time': 1, 'freq': 1},
-        'fax': {'dist': False, 'time': 1, 'freq': 1},
-        'mail': {'dist': True, 'speed': 10, 'freq': 1},
-        'carrier pigeon': {'dist': True, 'speed': 1, 'freq': 1},
-        'message in a bottle': {'dist': True, 'speed': 10, 'freq': 1},
-        'telepathy': {'dist': False, 'time': 1, 'freq': 1},
-        'beacon': {'dist': True, 'speed': 10, 'freq': 1},
-        'drums': {'dist': True, 'speed': 10, 'freq': 1},
-        'radio': {'dist': False, 'time': 1, 'freq': 1},
-        'pager': {'dist': False, 'time': 1, 'freq': 1},
-        'newspaper crossword': {'dist': False, 'time': 1, 'freq': 1},
-        'skywriting': {'dist': False, 'time': 1, 'freq': 1},
-        'telegraph': {'dist': False, 'time': 1, 'freq': 1}
+        'phone': {'dist': False, 'time': 3, 'freq': 5},
+        'in person': {'dist': True, 'speed': 10, 'freq': 10},
+        'e-mail': {'dist': False, 'time': 1.5, 'freq': 2},
+        'fax': {'dist': False, 'time': 4, 'freq': 1},
+        'mail': {'dist': True, 'speed': 15, 'freq': 8},
+        'carrier pigeon': {'dist': True, 'speed': 20, 'freq': 1},
+        'message in a bottle': {'dist': True, 'speed': 5, 'freq': 5},
+        'telepathy': {'dist': False, 'time': 1, 'freq': .5},
+        'beacon': {'dist': True, 'speed': 15, 'freq': 3},
+        'drums': {'dist': True, 'speed': 15, 'freq': 4},
+        'radio': {'dist': False, 'time': 6, 'freq': 6},
+        'pager': {'dist': False, 'time': 2, 'freq': 2},
+        'newspaper crossword': {'dist': False, 'time': 14, 'freq': 1},
+        'skywriting': {'dist': False, 'time': 7, 'freq': .5},
+        'telegraph': {'dist': False, 'time': 7, 'freq': 3}
     }
     # type: 'c' (connection), 'p' (person) or 'a' (area); area type requires
     #       radius in pixels
