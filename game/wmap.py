@@ -286,6 +286,7 @@ class Map (Widget):
         self.level = level
         self.selected = selected
         self.selecting = None
+        self._sel_area = None
         self._actions = []
         self._news = []
         self.areas = areas = {}
@@ -482,6 +483,14 @@ class Map (Widget):
             dists.append(((ax - x) ** 2 + (ay - y) ** 2, name))
         return min(dists)[1]
 
+    def sel_area (self, pos, r):
+        img = self.level.game.img('area.png')
+        img = pg.transform.smoothscale(img, (r * 2, r * 2))
+        self._sel_area = ((pos[0] - r, pos[1] - r), img.convert_alpha())
+
+    def unsel_area (self):
+        self._sel_area = None
+
     def click (self, pos, evt):
         if evt.button in conf.CLICK_BTNS:
             if self.selecting:
@@ -493,6 +502,7 @@ class Map (Widget):
                 # selecting an area for an action: add people and connections
                 # in the area as wanted by Selected
                 ps, cs = self.objs_in(pos, self.selecting.data['radius'])
+                self.selecting.pos = pos
                 obj = (obj, ps, cs)
             self.selected.show(obj, self.selecting)
 
@@ -552,4 +562,7 @@ class Map (Widget):
             p.draw(screen, pos)
         for c in self.cons:
             c.draw_pos(screen, pos)
+        if self._sel_area is not None:
+            img_pos, img = self._sel_area
+            screen.blit(img, sum_pos(pos, img_pos))
         return True

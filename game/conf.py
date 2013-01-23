@@ -144,7 +144,7 @@ class Conf (object):
     })
 
     # gameplay
-    INITIAL_INFLUENCE = 0
+    INITIAL_INFLUENCE = 10
     INFLUENCE_GROWTH_RATE = .1 # increase per frame
     DAY_FRAMES = 4 * FPS['level']
     # world map initialisation

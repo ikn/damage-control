@@ -153,8 +153,13 @@ action: if the player is selecting an area for an action, this is the Action
             if hasattr(self, 'showing'):
                 if self.showing_type in ('p', 'c'):
                     self.showing.unselect()
+                elif self.action and self.showing_type == 'a':
+                    self.wmap.unsel_area()
+            #print showing_type, action
             if showing_type in ('p', 'c'):
                 obj.select()
+            elif action and showing_type == 'a':
+                self.wmap.sel_area(action.pos, action.data['radius'])
         self.showing = obj
         self.showing_type = showing_type
         self.action = action
