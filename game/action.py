@@ -1,4 +1,4 @@
-from random import choice, triangular
+from random import triangular
 
 import pygame as pg
 from pygame import Surface
@@ -192,6 +192,10 @@ action: if the player is selecting an area for an action, this is the Action
             ]
         elif showing_type == 'p':
             head = 'Selected: {0}'.format(obj.name)
+            # icon
+            img = obj.img(False)
+            img_w = img.get_width()
+            data += [5, (img,)]
         else: # area
             if action:
                 name, people, cons = obj
@@ -223,14 +227,6 @@ action: if the player is selecting an area for an action, this is the Action
                 data = [data[0]] + self._method_map(methods) + data[1:]
         # add heading
         data = [5, (('subhead', head, width),)] + data
-        # person icon
-        if showing_type == 'p':
-            img = obj.img()
-            img_w = img.get_width()
-            data[1] = (
-                4, img_w + 4, ('subhead', head, width - 2 * img_w - 16), 4,
-                img, 4
-            )
         if action:
             # add buttons
             data.append(10)

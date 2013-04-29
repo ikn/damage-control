@@ -144,8 +144,8 @@ class Conf (object):
     })
 
     # gameplay
-    INITIAL_INFLUENCE = 0
-    INFLUENCE_GROWTH_RATE = .1 # increase per frame
+    INITIAL_INFLUENCE = 100
+    INFLUENCE_GROWTH_RATE = .15 # increase per frame
     DAY_FRAMES = 4 * FPS['level']
     # world map initialisation
     PERSON_NEAREST = 5 # must be > 0
@@ -171,7 +171,10 @@ class Conf (object):
         'you feed your guests to your pet dragon',
         'you stretch your children on a daily basis',
         'you lock up sane people in mental asylums',
-        'your grass is greener'
+        'you test cosmetics on babies',
+        'you\'re scared of bright lights and are plotting to block out the Sun',
+        'you hate snow',
+        'you float in water and have more broomsticks than necessary'
     ]
     # person names
     FULL_NAMES = [
@@ -180,15 +183,15 @@ class Conf (object):
         'your neighbour', 'the prime minister of the world', 'some guy',
         'your pet ferret', 'the king of the homeless', 'King Henry VIII',
         'your evil clone', 'your future self', 'a rabid boar', 'Zeus',
-        'Mack McMacdonald', 'Frog?'
+        'Mack McMacdonald', 'Frog?', 'the Grinch'
     ]
-    NUM_FULL_NAMES = min(len(FULL_NAMES), 10)
+    NUM_FULL_NAMES = min(len(FULL_NAMES) / 2, int(.4 * NUM_PEOPLE))
     # keys can be (male, female); values are weightings
     TITLES = {
         None: 30, ('King', 'Queen'): 1, ('Sir', 'Dame'): 5, 'Angel': .5,
         'Reverend': 2, 'Reverend Doctor Doctor': .2, 'Doctor': 3, 'Colonel': 1,
         'Sideshow': 1, ('Duke', 'Duchess'): 1, ('Count', 'Countess'): 1,
-        'Pope': .5
+        'Pope': .5, 'Baby': .2, 'Captain': 1.5
     }
     FORENAMES = {
         'male': [
@@ -196,7 +199,8 @@ class Conf (object):
             'Caspian', 'Bartholomew', 'Basil', 'Rudyard', 'Gerald', 'Reginald',
             'Crofton', 'Charles', 'Archibald', 'Blake', 'Casper', 'Edgar',
             'Elias', 'Elwin', 'Horace', 'Ignatius', 'Julius', 'Lucius',
-            'Maurice', 'Quinn', 'Raleigh', 'Wilbur', 'Xavier', 'Alfred'
+            'Maurice', 'Quinn', 'Raleigh', 'Wilbur', 'Xavier', 'Alfred',
+            'Kermit', 'Leopold'
         ], 'female': [
             'Agatha', 'Agnes', 'Edith', 'Gertrude', 'Guinevere', 'Mabel',
             'Ophelia', 'Salome', 'Beatrice', 'Millicent', 'Mable', 'Vera',
@@ -205,7 +209,13 @@ class Conf (object):
         ]
     }
     SURNAMES = [
-        'of Narnia', 'the Conqueror', 'Doe', 'the Third'
+        'of Narnia', 'the Conqueror', 'Doe', 'the Third',
+        'Safecracker\'s apprentice', 'Gluemaker\'s horse',
+        'Knight of the Round', 'the Reliable', 'Lord of Gnats', 'the Pitiful',
+        'Closer of Deals', 'the Proud', 'the Passive', 'Binman\'s apprentice',
+        'the Passive', 'of the North', 'Soler\'s soulmate', 'Test Subject 042',
+        ('Haberdasher\'s son', 'Haberdasher\'s daughter'),
+        'Wielder of Crowbars'
     ]
     # if dist, speed is in pixels per day
     # else time is in days
@@ -234,135 +244,148 @@ class Conf (object):
     # news_start can contain %t for time, %r for time range
     ACTIONS = [
         {
+            'desc': 'hire a mugger',
+            'type': 'p',
+            'cost': 15,
+            'affects': ('in person',),
+            'time': (2, 3, 5),
+            'news start': (
+None,
+            ), 'news end': (
+None,
+            )
+        }, {
             'desc': 'cut phone line',
             'type': 'c',
-            'cost': 10,
+            'cost': 25,
             'affects': ('phone', 'fax', 'telegraph'),
             'time': (5, 7, 10),
             'news start': (
-'An engineer will be sent to fix reported telephone outages.  Job time ' \
-'estimate: %t.',
+None,
+#'An engineer will be sent to fix reported telephone outages.  Job time ' \
+#'estimate: %t.',
             ), 'news end': (
-'end phone',
+None,
             )
         }, {
             'desc': 'broadcast jamming signal',
             'type': 'a',
-            'radius': 150,
-            'cost': 10,
+            'radius': 100,
+            'cost': 100,
             'affects': ('telepathy', 'radio', 'pager'),
             'time': (4, 6, 7),
             'news start': (
-'Disruptions to wireless services have been detected in %a.  We expect to ' \
-'find the source in %r.',
+None,
+#'Disruptions to wireless services have been detected in %a.  We expect to ' \
+#'find the source in %r.',
             ), 'news end': (
-'end jamming',
+None,
             )
         }, {
             'desc': 'send virus to computer',
             'type': 'p',
-            'cost': 10,
+            'cost': 35,
             'affects': ('e-mail', 'fax'),
-            'time': (4, 6, 7),
+            'time': (7, 8, 10),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'shoot down a pigeon',
             'type': 'c',
-            'cost': 10,
+            'cost': 45,
             'affects': ('carrier pigeon',),
-            'time': (4, 6, 7),
+            'time': (10, 12, 14),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'bribe newspaper editor not to include crossword message',
             'type': 'c',
-            'cost': 10,
+            'cost': 30,
             'affects': ('newspaper crossword',),
-            'time': (4, 6, 7),
+            'time': (6, 7, 8),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'cause fog',
             'type': 'a',
             'radius': 150,
-            'cost': 10,
+            'cost': 60,
             'affects': ('beacon',),
-            'time': (4, 6, 7),
+            'time': (2, 4, 6),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'play a loud sound',
             'type': 'a',
-            'radius': 150,
-            'cost': 10,
+            'radius': 80,
+            'cost': 50,
             'affects': ('message in a bottle', 'drums'),
-            'time': (4, 6, 7),
+            'time': (1, 3, 4),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'order a hit',
             'type': 'p',
-            'cost': 10,
+            'cost': 250,
             'affects': METHODS.keys(),
-            'time': (4, 6, 7),
+            'time': (10, 14, 21),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'cause a storm',
             'type': 'a',
             'radius': 150,
-            'cost': 10,
+            'cost': 250,
             'affects': ('phone', 'fax', 'carrier pigeon', 'beacon',
                         'telegraph'),
-            'time': (4, 6, 7),
+            'time': (3, 4, 7),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'cause an earthquake',
             'type': 'a',
-            'radius': 150,
-            'cost': 10,
+            'radius': 200,
+            'cost': 800,
             'affects': METHODS.keys(),
-            'time': (4, 6, 7),
+            'time': (5, 10, 14),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }, {
             'desc': 'incite a riot',
             'type': 'a',
-            'radius': 150,
-            'cost': 10,
+            'radius': 100,
+            'cost': 250,
             'affects': ('in person', 'mail', 'carrier pigeon', 'beacon',
                         'drums', 'newspaper crossword'),
-            'time': (4, 6, 7),
+            'time': (4, 6, 8),
             'news start': (
-'start',
+None,
             ), 'news end': (
-'end',
+None,
             )
         }
     ]

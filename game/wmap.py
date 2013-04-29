@@ -103,15 +103,16 @@ methods: the methods (identifiers) to disable.
                 method = method_data[method]
                 l = method['disabled']
                 was_disabled = bool(l)
-                method['disabled'].append(action)
+                method['disabled'].remove(action)
                 if self.sending and bool(l) != was_disabled:
                     dist = self.dist
                     dist_left = (1 - self.progress) * dist
-                    t_left = dist_left / \
-                             method_data[self.current_method]['speed']
-                    if dist / method['speed'] < t_left:
-                        # switching to this method will be quicker
-                        self.send()
+                    if self.current_method is not None:
+                        t_left = dist_left / \
+                                 method_data[self.current_method]['speed']
+                        if dist / method['speed'] < t_left:
+                            # switching to this method will be quicker
+                            self.send()
 
     def send (self, sender = None):
         """Send a message from the given person.
@@ -198,6 +199,8 @@ class Person (object):
             name += ' '
         fore = choice(conf.FORENAMES[gender])
         sur = choice(conf.SURNAMES)
+        if isinstance(sur, tuple):
+            sur = sur[gender == 'female']
         name += fore + ' ' + sur
         self.name = name
         self.pos = pos
@@ -221,8 +224,8 @@ class Person (object):
         """Get the distance to another person."""
         return self.wmap.dists[frozenset((self, other))]
 
-    def img (self):
-        return self._imgs[self.knows + 2 * self.selected]
+    def img (self, sel = True):
+        return self._imgs[self.knows + 2 * self.selected * sel]
 
     def recieve (self, con = None):
         """Recieve the message."""

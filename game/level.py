@@ -15,6 +15,8 @@ def _setup_widgets (bg, *ws):
         w.bg = bg
         if isinstance(w, ui.Container):
             _setup_widgets(bg, *(child for pos, child in w.widgets))
+            if isinstance(w, ui.List):
+                _setup_widgets(bg, *(w._widgets_before + w._widgets_after))
         if isinstance(w, InfluenceWidget):
             w.text.bg = w.bg
 
@@ -98,7 +100,6 @@ class Level (object):
         text = text.format(self.wmap.people[0].name.capitalize(),
                            choice(conf.FACTS))
         self.add_news(text)
-        # TODO: add initial text (as news)
 
     def _mbdown (self, evt):
         w = self.ui.click(evt.pos, evt)
