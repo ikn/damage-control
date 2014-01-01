@@ -47,7 +47,7 @@ class Conf (object):
     FONT_DIR = DATA_DIR + 'font' + sep
 
     # display
-    WINDOW_ICON = None #IMG_DIR + 'icon.png'
+    WINDOW_ICON = IMG_DIR + 'icon.png'
     WINDOW_TITLE = 'Damage Control'
     MOUSE_VISIBLE = dd(True) # per-backend
     FLAGS = 0
